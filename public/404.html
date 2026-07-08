@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A deploy-ready research peptide ecommerce storefront with catalog, cart, COA library, calculator, tracking, checkout, and support flows."
+    />
+    <meta name="theme-color" content="#e91e6a" />
+    <title>PSPeptides Clone Storefront</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    <script>
+      const firstPathSegment = location.pathname.split("/").filter(Boolean)[0] || "";
+      const localAssetBase = location.protocol === "file:" ? "." : "";
+      window.__APP_BASE__ = location.hostname.endsWith("github.io") && firstPathSegment
+        ? "/" + firstPathSegment
+        : localAssetBase;
+      document.write('<link rel="stylesheet" href="' + window.__APP_BASE__ + '/src/styles.css" />');
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      document.write('<script src="' + window.__APP_BASE__ + '/src/site-bundle.js"><\/script>');
+    </script>
+  </body>
+</html>
