@@ -1,0 +1,11 @@
+{
+  "name": "peptide-storefront",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "python server.py",
+    "test": "node src/test/math.test.mjs",
+    "build": "node src/test/math.test.mjs"
+  }
+}
