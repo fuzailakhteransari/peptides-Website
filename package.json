@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "python server.py",
     "test": "node src/test/math.test.mjs",
-    "build": "node src/test/math.test.mjs"
+    "bundle": "node scripts/bundle.mjs",
+    "build": "node scripts/bundle.mjs && node src/test/math.test.mjs"
   }
 }
