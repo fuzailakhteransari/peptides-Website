@@ -261,6 +261,10 @@ const CONTACT = {
   address: "US and Indonesia / Southeast Asia support"
 };
 
+// Toggle this to false to remove the researcher verification gate without deleting the UI.
+const RESEARCHER_GATE_ENABLED = true;
+const RESEARCHER_GATE_STORAGE_KEY = "maxxfit-researcher-verified";
+
 const state = {
   cart: readJson("research-cart", []),
   searchOpen: false,
@@ -279,7 +283,9 @@ const state = {
   checkoutMaxStep: Number(localStorage.getItem("maxxfit-checkout-max-step") || 1),
   checkoutData: readJson("maxxfit-checkout-draft", {}),
   lastOrder: readJson("maxxfit-last-order", null),
-  account: localStorage.getItem("maxxfit-account") === "1"
+  account: localStorage.getItem("maxxfit-account") === "1",
+  researcherGateOpen: RESEARCHER_GATE_ENABLED && localStorage.getItem(RESEARCHER_GATE_STORAGE_KEY) !== "1",
+  researcherChecks: { age: false, qualified: false }
 };
 
 document.addEventListener("click", (event) => {
@@ -314,6 +320,7 @@ function render() {
     ${state.searchOpen ? searchOverlay() : ""}
     ${state.cartOpen ? cartDrawer() : ""}
     ${state.drawerOpen ? mobileDrawer() : ""}
+    ${state.researcherGateOpen ? researcherGate() : ""}
     ${state.toast ? toast() : ""}
   `;
   normalizeLinks();
@@ -956,6 +963,19 @@ function bindGlobal() {
     })
   );
   document.querySelectorAll(".scrim aside, .search-panel").forEach((panel) => panel.addEventListener("click", (event) => event.stopPropagation()));
+  document.querySelectorAll("[data-researcher-check]").forEach((input) => {
+    input.addEventListener("change", () => {
+      state.researcherChecks[input.dataset.researcherCheck] = input.checked;
+      const enterButton = document.querySelector("[data-enter-site]");
+      if (enterButton) enterButton.disabled = !researcherGateReady();
+    });
+  });
+  document.querySelector("[data-enter-site]")?.addEventListener("click", () => {
+    if (!researcherGateReady()) return;
+    localStorage.setItem(RESEARCHER_GATE_STORAGE_KEY, "1");
+    state.researcherGateOpen = false;
+    render();
+  });
   document.querySelector("[data-toast-close]")?.addEventListener("click", () => {
     state.toast = "";
     render();
@@ -1341,6 +1361,36 @@ function resolveLine(line) {
   const product = products.find((item) => item.slug === line.slug);
   const variant = product?.variants.find((item) => item.sku === line.sku);
   return product && variant ? { product, variant } : null;
+}
+
+function researcherGateReady() {
+  return Boolean(state.researcherChecks.age && state.researcherChecks.qualified);
+}
+
+function researcherGate() {
+  const ready = researcherGateReady();
+  return `<div class="scrim researcher-gate" data-researcher-gate role="presentation">
+    <section class="researcher-card" role="dialog" aria-modal="true" aria-labelledby="researcher-title">
+      <header class="researcher-card-brand"><span>MAXX</span><span>FIT</span><span>LABS</span></header>
+      <div class="researcher-card-body">
+        <h2 id="researcher-title">Researcher Verification</h2>
+        <p>This website sells research materials exclusively to qualified researchers and laboratories for in vitro and laboratory research use only. Please confirm the statements below before continuing.</p>
+        <div class="researcher-confirmations">
+          <label class="researcher-confirm">
+            <input data-researcher-check="age" type="checkbox" ${state.researcherChecks.age ? "checked" : ""}>
+            <span>I confirm that I am at least 21 years of age.</span>
+          </label>
+          <label class="researcher-confirm">
+            <input data-researcher-check="qualified" type="checkbox" ${state.researcherChecks.qualified ? "checked" : ""}>
+            <span>I confirm that I am a qualified researcher or laboratory representative purchasing for in vitro / laboratory research only, and not for human or veterinary use.</span>
+          </label>
+        </div>
+        <button class="btn primary researcher-enter" data-enter-site type="button" ${ready ? "" : "disabled"}>Enter Site</button>
+        <p class="researcher-disclaimer">By continuing, I confirm that the statements above are true. All materials available on this website are intended strictly for laboratory and research use only. These materials are not for human or veterinary use, not for diagnostic procedures, and have not been evaluated by the U.S. Food and Drug Administration.</p>
+        <a class="researcher-exit" href="https://www.google.com/">Not a researcher? Exit</a>
+      </div>
+    </section>
+  </div>`;
 }
 
 function searchOverlay() {
