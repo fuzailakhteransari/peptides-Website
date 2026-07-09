@@ -446,9 +446,8 @@ function homePage() {
           <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
         </div>
         <div class="hero-visual reveal">
-          <div class="brand-shot">
-            ${brandLogo("hero-logo")}
-            <img src="${assetPath("assets/maxxfit/performance-grid.png")}" alt="MAXXFIT LABS campaign visuals">
+          <div class="brand-shot hero-showcase-card">
+            <img class="hero-showcase-image" src="${assetPath("assets/maxxfit/hero-reta-showcase.png")}" alt="MAXXFIT LABS RETA research peptide vial">
           </div>
         </div>
       </div>
