@@ -445,10 +445,8 @@ function homePage() {
           <p>MAXXFIT LABS delivers precision-sourced research materials with market-aware checkout, visible research-use language, and batch documentation links when available.</p>
           <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
         </div>
-        <div class="hero-visual reveal">
-          <div class="brand-shot hero-showcase-card">
-            <img class="hero-showcase-image" src="${assetPath("assets/maxxfit/hero-reta-showcase.png")}" alt="MAXXFIT LABS RETA research peptide vial">
-          </div>
+        <div class="hero-visual hero-product-wash reveal" aria-hidden="true">
+          <img class="hero-showcase-image" src="${assetPath("assets/maxxfit/hero-reta-showcase.png")}" alt="">
         </div>
       </div>
     </section>
