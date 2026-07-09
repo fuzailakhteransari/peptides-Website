@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   color-scheme: light;
   --ink: #091315;
   --ink-soft: #526366;
@@ -20,7 +20,7 @@
   --radius: 8px;
   --radius-lg: 12px;
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * {
@@ -157,6 +157,16 @@ p {
   font-size: 0.92rem;
 }
 
+.announcement .market-switcher {
+  min-height: 34px;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.announcement .market-switcher button {
+  min-height: 26px;
+  padding: 4px 8px;
+}
+
 .announcement button {
   display: inline-grid;
   place-items: center;
@@ -176,6 +186,18 @@ p {
   background: rgba(255, 255, 255, 0.94);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(14px);
+}
+
+.has-scrolled .site-header {
+  box-shadow: var(--shadow-sm);
+}
+
+.has-scrolled .trust-strip {
+  display: none;
+}
+
+.has-scrolled .header-inner {
+  min-height: 64px;
 }
 
 .checkout-header {
@@ -385,7 +407,7 @@ p {
   padding: 12px 18px;
   border: 1px solid transparent;
   border-radius: var(--radius);
-  font-weight: 850;
+  font-weight: 800;
   cursor: pointer;
   transition:
     background 180ms ease,
@@ -445,7 +467,7 @@ p {
   border: 0;
   background: transparent;
   color: var(--primary);
-  font-weight: 850;
+  font-weight: 800;
   cursor: pointer;
   padding: 0;
 }
@@ -890,7 +912,7 @@ p {
   border: 0;
   background: transparent;
   color: var(--ink);
-  font-weight: 850;
+  font-weight: 800;
   cursor: pointer;
   text-align: left;
 }
@@ -936,7 +958,7 @@ p {
   border-radius: 999px;
   background: var(--surface-alt);
   color: var(--ink-soft);
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .category-tabs {
@@ -957,7 +979,7 @@ p {
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink);
-  font-weight: 850;
+  font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -1024,7 +1046,7 @@ textarea {
 
 .result-count {
   margin-bottom: 18px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .empty-state {
@@ -1183,7 +1205,7 @@ textarea {
   border: 0;
   border-radius: 0;
   text-align: center;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .trust-microcopy {
@@ -1191,7 +1213,7 @@ textarea {
   gap: 8px;
   color: var(--ink-soft);
   font-size: 0.9rem;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .coa-box {
@@ -1209,6 +1231,13 @@ textarea {
   gap: 8px;
 }
 
+.report-row {
+  display: grid;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
 .coa-links a,
 .dosage-row span {
   display: inline-flex;
@@ -1220,7 +1249,7 @@ textarea {
   background: #fff;
   border: 1px solid var(--line);
   color: var(--primary);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 details {
@@ -1231,7 +1260,7 @@ details {
 summary {
   cursor: pointer;
   color: var(--primary);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 details a {
@@ -1288,7 +1317,7 @@ details a {
 
 .toc a {
   color: var(--primary);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .prose {
@@ -1357,7 +1386,7 @@ th {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .coa-grid {
@@ -1508,7 +1537,7 @@ th {
 
 .article-meta {
   color: var(--ink-soft);
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .article-hero {
@@ -1539,7 +1568,7 @@ th {
   height: 42px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .pagination [aria-current="page"] {
@@ -1701,6 +1730,11 @@ th {
   border-radius: var(--radius);
 }
 
+.step-tabs button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .account-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1778,7 +1812,7 @@ th {
   gap: 8px;
 }
 
-.social-row span {
+.social-row a {
   display: grid;
   place-items: center;
   width: 38px;
@@ -1829,7 +1863,7 @@ th {
   display: flex;
   align-items: center;
   border-bottom: 1px solid var(--line);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .drawer-head {
@@ -2212,7 +2246,7 @@ body,
 .App {
   background: #f6f8f7;
   color: var(--ink);
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 h1,
@@ -2220,7 +2254,7 @@ h2,
 h3,
 .brand strong,
 .stat-chip strong {
-  font-family: "Exo 2", Inter, system-ui, sans-serif;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
   letter-spacing: 0;
 }
 
@@ -2241,7 +2275,7 @@ h3 {
   background: #071113;
   color: #eef9f8;
   border-bottom: 1px solid rgba(52, 210, 221, 0.18);
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .announcement span:first-child {
@@ -2279,7 +2313,7 @@ h3 {
 .brand strong {
   color: #ecfbfa;
   font-size: 1.08rem;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .brand small {
@@ -2325,7 +2359,7 @@ h3 {
   color: rgba(236, 251, 250, 0.74);
   cursor: pointer;
   font-size: 0.78rem;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .market-switcher button.active,
@@ -2748,7 +2782,7 @@ h3 {
   color: #ffffff;
 }
 
-.social-row span {
+.social-row a {
   background: rgba(52, 210, 221, 0.12);
   color: var(--accent);
 }
