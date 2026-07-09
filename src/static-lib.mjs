@@ -1,5 +1,10 @@
-export function formatMoney(value) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+export function formatMoney(value, currency = "USD", locale = "en-US") {
+  const wholeCurrency = currency === "IDR";
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: wholeCurrency ? 0 : 2
+  }).format(value);
 }
 
 export function roundMoney(value) {

@@ -1,10 +1,10 @@
-# Research Peptide Storefront
+# MAXXFIT LABS Research Storefront
 
-Deploy-ready static storefront inspired by the provided ecommerce blueprint. It has no external runtime dependencies, so it runs locally even when npm package installation is unavailable.
+Deploy-ready static storefront for MAXXFIT LABS. It includes local brand assets, catalog, cart, COA library, calculator, tracking, market-aware checkout, COD confirmation flow, and a local admin pricing shell.
 
 ## Local Development
 
-You can open `index.html` directly by double-clicking it.
+You can open `index.html` directly.
 
 For a local server:
 
@@ -21,10 +21,13 @@ npm run build
 
 ## Demo Notes
 
-- Demo order tracking: `RS-1042` with `lab@example.com`.
+- US tracking example: `MX-1042` with `lab@example.com`.
+- Indonesia/SEA COD tracking example: `ID-2048` with `jakarta@example.com`.
 - Demo promo code: `RESEARCH10`.
-- Product images, reviews, company identity, certificates, support details, and payment methods are original placeholders.
-- Replace placeholder trust claims and legal copy with verified business data before going live.
+- Admin price editor: `/admin`.
+- US market: USD display and payment-processor checkout only.
+- Indonesia / Southeast Asia market: IDR display and COD-only order flow with call or WhatsApp confirmation before dispatch.
+- Real support numbers, payment processor details, COD policies, certificates, legal copy, and shipping terms must be verified before production launch.
 
 ## Deployment
 
@@ -37,23 +40,11 @@ The app includes:
 
 ## GitHub Pages
 
-Recommended repo name: `peptide-storefront`
+Recommended repo name: `peptides-Website`.
 
-Expected Pages URL:
-
-```text
-https://fuzailakhteransari.github.io/peptide-storefront/
-```
-
-If publishing as the user site repo `fuzailakhteransari.github.io`, the site will work at:
-
-```text
-https://fuzailakhteransari.github.io/
-```
-
-After uploading/pushing the files, open the repository on GitHub:
+After pushing the branch, open the repository on GitHub:
 
 1. Go to `Settings` > `Pages`.
 2. Set `Source` to `Deploy from a branch`.
-3. Set branch to `main` and folder to `/ (root)`.
+3. Set branch to the desired production branch and folder to `/ (root)`.
 4. Save and wait for GitHub Pages to publish.
