@@ -186,18 +186,7 @@ p {
   background: rgba(255, 255, 255, 0.94);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(14px);
-}
-
-.has-scrolled .site-header {
-  box-shadow: var(--shadow-sm);
-}
-
-.has-scrolled .trust-strip {
-  display: none;
-}
-
-.has-scrolled .header-inner {
-  min-height: 64px;
+  transform: translateZ(0);
 }
 
 .checkout-header {

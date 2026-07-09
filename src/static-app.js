@@ -76,9 +76,6 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("popstate", render);
 window.addEventListener("hashchange", render);
-window.addEventListener("scroll", () => {
-  document.documentElement.classList.toggle("has-scrolled", window.scrollY > 16);
-}, { passive: true });
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && (state.searchOpen || state.cartOpen || state.drawerOpen)) {
