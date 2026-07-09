@@ -664,11 +664,6 @@ function homePage() {
           <h1>Premium research peptides <span class="text-accent">you can trust.</span></h1>
           <p>MAXXFIT LABS delivers precision-sourced research materials with market-aware checkout, visible research-use language, and batch documentation links when available.</p>
           <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
-          <div class="hero-stats-row">
-            ${heroStat(String(products.length), "Catalog items")}
-            ${heroStat("COA", "Reports when available")}
-            ${heroStat(active.checkoutLabel, "Checkout mode")}
-          </div>
         </div>
         <div class="hero-visual reveal">
           <div class="brand-shot">
@@ -761,10 +756,6 @@ function homePage() {
 
     ${ctaBand()}
   `;
-}
-
-function heroStat(value, label) {
-  return `<div class="hero-stat"><strong>${value}</strong><span>${label}</span></div>`;
 }
 
 function qualityFeature(iconName, title, text) {
