@@ -3146,7 +3146,7 @@ h3 {
   padding-inline: 12px;
   color: rgba(236, 251, 250, 0.94);
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
   opacity: 0;
   transform: translate3d(0, 8px, 0);
   transition: opacity 480ms ease, transform 480ms ease;
@@ -3171,21 +3171,8 @@ h3 {
   min-height: 720px;
   padding-block: 96px 108px;
   background:
-    radial-gradient(1200px 640px at 88% 12%, rgba(52, 210, 221, 0.18), transparent 60%),
-    radial-gradient(900px 520px at 6% 96%, rgba(0, 159, 172, 0.14), transparent 55%),
     linear-gradient(180deg, rgba(7, 17, 19, 0.97) 0%, rgba(7, 17, 19, 0.92) 60%, rgba(9, 43, 49, 0.94) 100%),
     url("../assets/maxxfit/campaign-board.png") center / cover no-repeat;
-}
-
-.hero-glow {
-  position: absolute;
-  inset: -10% -20% auto auto;
-  width: 720px;
-  height: 720px;
-  background: radial-gradient(circle at 50% 50%, rgba(52, 210, 221, 0.28), transparent 60%);
-  filter: blur(20px);
-  z-index: -1;
-  pointer-events: none;
 }
 
 .hero-pill {
@@ -3200,7 +3187,7 @@ h3 {
   color: rgba(236, 251, 250, 0.92);
   font-size: 0.82rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .pulse-dot {
@@ -3230,10 +3217,10 @@ h3 {
   margin-top: 4px;
   margin-bottom: 20px;
   max-width: 820px;
-  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  font-size: 4.2rem;
   font-weight: 900;
   line-height: 1.02;
-  letter-spacing: -0.015em;
+  letter-spacing: 0;
 }
 
 .hero .button-row {
@@ -3264,7 +3251,7 @@ h3 {
 .hero-stat {
   padding: 18px 20px;
   border: 1px solid rgba(52, 210, 221, 0.22);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(8px);
   transition: border-color 220ms ease, transform 220ms ease, background 220ms ease;
@@ -3279,9 +3266,9 @@ h3 {
 .hero-stat strong {
   display: block;
   color: #ffffff;
-  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-size: 1.85rem;
   font-weight: 900;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   line-height: 1;
 }
 
@@ -3321,9 +3308,9 @@ h3 {
 
 .section-heading h2,
 .section-heading-narrow h2 {
-  font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+  font-size: 2.5rem;
   font-weight: 900;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   line-height: 1.08;
 }
 
@@ -3361,7 +3348,7 @@ h3 {
   width: clamp(220px, 24vw, 320px);
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: #071113;
   box-shadow: 0 12px 32px rgba(5, 22, 25, 0.15);
   transition: transform 320ms ease;
@@ -3392,7 +3379,7 @@ h3 {
   gap: 20px;
   padding: 24px 26px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: #ffffff;
   color: var(--ink);
   box-shadow: 0 12px 34px rgba(5, 22, 25, 0.06);
@@ -3410,7 +3397,7 @@ h3 {
   place-items: center;
   width: 56px;
   height: 56px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: linear-gradient(135deg, rgba(0, 159, 172, 0.12), rgba(52, 210, 221, 0.18));
   color: var(--primary-strong);
 }
@@ -3470,7 +3457,7 @@ h3 {
 .floating-badge {
   padding: 7px 11px;
   font-weight: 900;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-transform: uppercase;
   font-size: 0.7rem;
   box-shadow: 0 6px 18px rgba(7, 17, 19, 0.4);
@@ -3489,7 +3476,7 @@ h3 {
 .quality-feature {
   padding: 32px 24px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius);
   background: #ffffff;
   box-shadow: 0 4px 22px rgba(5, 22, 25, 0.05);
   transition: transform 280ms ease, box-shadow 280ms ease, border-color 280ms ease;
@@ -3507,7 +3494,7 @@ h3 {
   width: 60px;
   height: 60px;
   margin-bottom: 20px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: linear-gradient(135deg, var(--primary-strong), var(--primary));
   color: #ffffff;
   box-shadow: 0 12px 28px rgba(0, 159, 172, 0.24);
@@ -3534,10 +3521,8 @@ h3 {
   gap: 44px;
   align-items: stretch;
   padding: 48px 56px;
-  border-radius: 20px;
-  background:
-    radial-gradient(600px 320px at 90% 10%, rgba(52, 210, 221, 0.2), transparent 60%),
-    linear-gradient(135deg, #071113 0%, #0c3940 100%);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #071113 0%, #0c3940 100%);
   color: #ffffff;
   overflow: hidden;
 }
@@ -3554,9 +3539,9 @@ h3 {
 
 .affiliate-band h2 {
   color: #ffffff;
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-size: 2.35rem;
   font-weight: 900;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   margin-bottom: 16px;
 }
 
@@ -3602,7 +3587,7 @@ h3 {
   position: relative;
   min-height: 320px;
   max-height: 440px;
-  border-radius: 16px;
+  border-radius: var(--radius);
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
@@ -3630,7 +3615,7 @@ h3 {
   gap: 16px;
   padding: 28px 26px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius);
   background: #ffffff;
   box-shadow: 0 6px 22px rgba(5, 22, 25, 0.06);
   transition: transform 260ms ease, box-shadow 260ms ease;
@@ -3644,7 +3629,7 @@ h3 {
 .review-stars {
   display: inline-flex;
   gap: 3px;
-  color: #f5a623;
+  color: var(--primary);
 }
 
 .review-body {
@@ -3694,16 +3679,14 @@ h3 {
   overflow: hidden;
   padding-block: 76px;
   border-radius: 0;
-  background:
-    radial-gradient(700px 400px at 20% 20%, rgba(52, 210, 221, 0.22), transparent 60%),
-    linear-gradient(135deg, #071113 0%, #0c3940 100%);
+  background: linear-gradient(135deg, #071113 0%, #0c3940 100%);
 }
 
 .cta-band h2 {
   color: #ffffff;
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-size: 2.35rem;
   font-weight: 900;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .cta-band p {
@@ -3752,7 +3735,7 @@ h3 {
 .category-label {
   display: inline-block;
   font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -3781,6 +3764,17 @@ h3 {
   .hero {
     min-height: auto;
     padding-block: 68px 76px;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+  }
+
+  .section-heading h2,
+  .section-heading-narrow h2,
+  .affiliate-band h2,
+  .cta-band h2 {
+    font-size: 2rem;
   }
 
   .hero-stats-row {
@@ -3825,6 +3819,17 @@ h3 {
   .announcement {
     padding-right: 40px;
     font-size: 0.76rem;
+  }
+
+  .hero h1 {
+    font-size: 2.35rem;
+  }
+
+  .section-heading h2,
+  .section-heading-narrow h2,
+  .affiliate-band h2,
+  .cta-band h2 {
+    font-size: 1.75rem;
   }
 
   .hero-pill {

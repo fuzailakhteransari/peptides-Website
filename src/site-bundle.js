@@ -7,20 +7,25 @@ function formatMoney(value, currency = "USD", locale = "en-US") {
     maximumFractionDigits: wholeCurrency ? 0 : 2
   }).format(value);
 }
+
 function roundMoney(value) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
+
 function tierDiscount(quantity) {
   if (quantity >= 3) return 0.05;
   if (quantity >= 2) return 0.03;
   return 0;
 }
+
 function linePrice(unitPrice, quantity) {
   return roundMoney(unitPrice * quantity * (1 - tierDiscount(quantity)));
 }
+
 function freeShippingRemaining(subtotal, threshold = 200) {
   return Math.max(0, roundMoney(threshold - subtotal));
 }
+
 function calculatePeptide({ vialMg, waterMl, doseMg }) {
   if (![vialMg, waterMl, doseMg].every(Number.isFinite)) {
     return emptyResult("Enter valid numbers in each field.");
@@ -113,6 +118,7 @@ const faq = [
   ["Can I review lab documents before ordering?", "Available COA, heavy metals, and endotoxin PDFs are linked on product pages and in the lab reports library. Items without a current uploaded report show an availability notice instead of a broken link."],
   ["How does checkout change by market?", "The storefront supports a US online checkout path and an Indonesia/Southeast Asia COD path with phone or WhatsApp confirmation before dispatch."]
 ];
+
 const wildImages = [
   "assets/maxxfit/performance-grid.png",
   "assets/maxxfit/story-posters.png",
@@ -123,6 +129,7 @@ const wildImages = [
 ];
 
 const imageMap = {};
+
 const products = [
   product("reta-research-peptide", "RETA Research Peptide", "Peptides", "Metabolic Research", "Flagship lyophilized research peptide with variant-specific batch documentation.", 188, [["5MG", 39.99], ["10MG", 64.99], ["20MG", 94.99], ["30MG", 119.99]], "Best seller"),
   product("nad-plus-research-peptide", "NAD+ Research Peptide", "Peptides", "Cellular Energy Research", "Cellular energy research material for laboratory study workflows.", 194, [["250MG", 74.99], ["500MG", 129.99]], "New"),
@@ -172,6 +179,7 @@ function product(slug, name, category, group, short, hue, variantRows, badge = "
     faqs: faq
   };
 }
+
 const blogPosts = [
   post("how-to-read-a-coa", "How to Read a Peptide COA", "Quality", "A practical guide to purity, identity, heavy metals, and endotoxin report fields."),
   post("research-peptide-storage-basics", "Research Peptide Storage Basics", "Handling", "Storage and handling reminders for laboratory research materials."),
@@ -196,6 +204,7 @@ function post(slug, title, category, excerpt) {
     ]
   };
 }
+
 const sampleOrders = [
   {
     order: "MX-1042",
@@ -214,6 +223,9 @@ const sampleOrders = [
     steps: ["Order received", "WhatsApp confirmation required", "Dispatch held until confirmed"]
   }
 ];
+
+
+
 
 const root = document.querySelector("#root");
 const IS_FILE = location.protocol === "file:";
@@ -253,18 +265,18 @@ const CONTACT = {
 };
 
 const ANNOUNCEMENTS = [
-  "Free Shipping On Any Order  |  Free Express Air On Orders Over $200  |  Code RESEARCH10 for 10% Off",
-  "Same Day Shipping On Orders Placed Before 2PM EST  |  US-Made & Verified 99%+ Purity",
-  "Now Shipping To Canada, EU, UK & Australia — Discreet Packaging With Full Tracking"
+  "US orders over $200 qualify for free shipping | Code RESEARCH10 for 10% off",
+  "Batch documentation linked when available | Research-use-only checkout",
+  "US online checkout | Indonesia / SEA COD confirmation before dispatch"
 ];
 
-const REVIEWS = [
-  { initial: "C", name: "Chance H.", body: "Sent GHK and Reta off to a 3rd-party lab — everything came back exactly as advertised and passed heavy metals testing. An A+ source." },
-  { initial: "C", name: "Carrie H.", body: "These guys go literally above and beyond. I put the wrong address in and they still sent a free replacement same day. Exceptional." },
-  { initial: "D", name: "Dulcidio G.", body: "Extremely happy. Placed two orders and both dispatched in under three hours after payment. Communication was excellent, even late at night." },
-  { initial: "S", name: "Sara B.", body: "Quick delivery, quality product and great customer service! I ordered from a few companies and this was by far the best. 5+ stars!!" },
-  { initial: "N", name: "Naziru M.", body: "8-month customer — my life has changed for the better. Shipping is insanely fast and the packaging is beautiful." },
-  { initial: "J", name: "Jasper T.", body: "An actual US company that shows their testing certificates and ships quick. 10/10." }
+const TRUST_POINTS = [
+  { icon: "shield", title: "Research-use controls", body: "The site includes researcher verification, product disclaimers, and checkout language for lawful in-vitro laboratory research only." },
+  { icon: "file", title: "Report visibility", body: "COA, heavy metals, and endotoxin files are linked by variant when uploaded, with request messaging when a report is not yet posted." },
+  { icon: "truck", title: "Market-aware checkout", body: "US visitors use online checkout. Indonesia / SEA visitors see COD language and phone or WhatsApp confirmation before dispatch." },
+  { icon: "calc", title: "Planning tools", body: "The calculator helps estimate concentration, syringe units, dose volume, and doses per vial for lab workflow planning." },
+  { icon: "chat", title: "Support handoff", body: "Contact, WhatsApp, tracking, and local account states remain available across the storefront." },
+  { icon: "box", title: "Catalog structure", body: "Peptides, bundles, supplies, accessories, reports, and educational guides stay connected through the static storefront." }
 ];
 
 // Toggle this to false to remove the researcher verification gate without deleting the UI.
@@ -646,17 +658,16 @@ function homePage() {
   const bundles = products.filter((p) => p.category === "Bundles");
   return `
     <section class="hero band">
-      <div class="hero-glow" aria-hidden="true"></div>
       <div class="container hero-grid">
         <div class="hero-copy reveal">
-          <span class="hero-pill"><span class="pulse-dot"></span> US Made & Shipped &nbsp;•&nbsp; Same Day Shipping &nbsp;•&nbsp; ${active.label} - ${active.currency}</span>
+          <span class="hero-pill"><span class="pulse-dot"></span> Batch documents when available | ${active.label} - ${active.currency}</span>
           <h1>Premium research peptides <span class="text-accent">you can trust.</span></h1>
-          <p>MAXXFIT LABS delivers precision-sourced research peptides with verified 99%+ purity. Every batch is rigorously tested by independent laboratories. Orders ship same or next business day.</p>
-          <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} 24/7 Support</a></div>
+          <p>MAXXFIT LABS delivers precision-sourced research materials with market-aware checkout, visible research-use language, and batch documentation links when available.</p>
+          <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
           <div class="hero-stats-row">
-            ${heroStat("99%+", "Verified purity")}
-            ${heroStat("10K+", "Orders shipped")}
-            ${heroStat("<24h", "Same day shipping")}
+            ${heroStat(String(products.length), "Catalog items")}
+            ${heroStat("COA", "Reports when available")}
+            ${heroStat(active.checkoutLabel, "Checkout mode")}
           </div>
         </div>
         <div class="hero-visual reveal">
@@ -692,26 +703,26 @@ function homePage() {
 
     <section class="section surface-band">
       <div class="container">
-        <div class="section-heading reveal"><span class="eyebrow">Save More</span><h2>Peptide <span class="text-accent">Bundles.</span></h2><p>Curated multi-peptide stacks at a bundled price — everything a protocol needs in one click.</p></div>
+        <div class="section-heading reveal"><span class="eyebrow">Save More</span><h2>Peptide <span class="text-accent">Bundles.</span></h2><p>Curated multi-peptide stacks at a bundled price for organized laboratory purchasing.</p></div>
         <div class="product-grid reveal">${bundles.map(productCard).join("")}</div>
         <div class="centered"><a data-link class="btn secondary" href="/shop?category=Bundles">Shop All Bundles ${icon("arrow")}</a></div>
       </div>
     </section>
 
     <section class="section container">
-      <div class="section-heading reveal"><span class="eyebrow">Our Products</span><h2>Best-selling <span class="text-accent">peptides.</span></h2><p>Explore our most popular research peptides, each verified for purity and potency.</p></div>
+      <div class="section-heading reveal"><span class="eyebrow">Our Products</span><h2>Best-selling <span class="text-accent">peptides.</span></h2><p>Explore popular research peptides with variant pricing and report visibility when available.</p></div>
       <div class="reveal">${productGrid(best)}</div>
       <div class="centered"><a data-link class="btn secondary" href="/shop">View All Products ${icon("arrow")}</a></div>
     </section>
 
     <section class="section quality-band">
       <div class="container">
-        <div class="section-heading reveal"><span class="eyebrow">Why MAXXFIT LABS</span><h2>Quality you can <span class="text-accent">count on.</span></h2><p>We go above and beyond to ensure every product meets the highest standards of purity and quality.</p></div>
+        <div class="section-heading reveal"><span class="eyebrow">Why MAXXFIT LABS</span><h2>Quality you can <span class="text-accent">review.</span></h2><p>The storefront keeps documentation, checkout mode, and research-use context visible throughout the buying path.</p></div>
         <div class="feature-grid reveal">
-          ${qualityFeature("test", "Third-Party Tested", "Every batch undergoes rigorous independent laboratory testing with HPLC and Mass Spectrometry verification.")}
-          ${qualityFeature("shield", "99%+ Purity", "Our strict quality control ensures every peptide meets a minimum 99% purity threshold before shipping.")}
-          ${qualityFeature("truck", "Fast Shipping", "Orders placed before 2PM EST ship same day. Discrete packaging with full tracking on every order.")}
-          ${qualityFeature("chat", "Expert Support", "Our knowledgeable team is available 7 days a week to answer your questions and help with orders.")}
+          ${qualityFeature("test", "Report Access", "COA, heavy metals, and endotoxin documents are linked when uploaded for a product variant.")}
+          ${qualityFeature("shield", "Research-Use Language", "Product, cart, checkout, and legal pages keep in-vitro research-only language visible.")}
+          ${qualityFeature("truck", "Regional Fulfillment", "US and Indonesia / SEA visitors see market-specific currency, delivery, and confirmation details.")}
+          ${qualityFeature("chat", "Support Paths", "Email, WhatsApp handoff, tracking, and order verification remain reachable from support pages.")}
         </div>
       </div>
     </section>
@@ -720,13 +731,13 @@ function homePage() {
       <div class="affiliate-band reveal">
         <div>
           <span class="eyebrow accent-light">Become an Affiliate</span>
-          <h2>Get paid to rep <span class="text-accent">MAXXFIT LABS.</span></h2>
-          <p>We're looking for fit, driven researchers, coaches, and creators who live the lifestyle — to partner with MAXXFIT LABS and earn doing what they already love.</p>
+          <h2>Partner with <span class="text-accent">MAXXFIT LABS.</span></h2>
+          <p>Apply to join a partner program built around compliant research-use education, manual review, and approved discount-code support.</p>
           <ul class="check-list">
-            <li>${icon("check")} Earn commission on every order you refer</li>
-            <li>${icon("check")} Your own discount code & tracking link</li>
-            <li>${icon("check")} Perfect for fitness enthusiasts & content creators</li>
-            <li>${icon("check")} Free to join, apply in minutes</li>
+            <li>${icon("check")} Research-use messaging standards</li>
+            <li>${icon("check")} Discount-code and link support after approval</li>
+            <li>${icon("check")} Manual review before partner claims are published</li>
+            <li>${icon("check")} Application stored locally for review</li>
           </ul>
           <a data-link class="btn primary" href="/affiliate-registration">Apply Now ${icon("arrow")}</a>
         </div>
@@ -738,13 +749,13 @@ function homePage() {
 
     <section class="section reviews-band">
       <div class="container">
-        <div class="section-heading reveal"><span class="eyebrow">Reviews</span><h2>Rated excellent by <span class="text-accent">researchers.</span></h2><p>See what customers say — verified reviews from qualified researchers and laboratories.</p></div>
-        <div class="reviews-grid reveal">${REVIEWS.map(reviewCard).join("")}</div>
+        <div class="section-heading reveal"><span class="eyebrow">Verification</span><h2>Researcher confidence <span class="text-accent">points.</span></h2><p>Clear operational signals are surfaced before checkout so customers can review documentation, market rules, and support paths.</p></div>
+        <div class="reviews-grid reveal">${TRUST_POINTS.map(confidenceCard).join("")}</div>
       </div>
     </section>
 
     <section class="section container split-section">
-      <div class="reveal">${sectionHeading("FAQ", "Frequently asked questions")}${accordion([["Do you test the purity and sterility of your products?", "Yes, every batch is tested and current results are posted in our Certifications page. HPLC, heavy metals, and endotoxin PDFs are linked by variant when uploaded."], ["How do I track my order?", "Once shipped, you'll receive an email with a tracking number. Orders placed before 2PM EST typically ship the same business day. Use the tracking link in your email or open our Order Tracking page."], ["In what countries do you ship?", "We ship across the US and US territories, and now also to Canada, the EU, the UK, and Australia. Indonesia / SEA orders are supported via a COD confirmation flow."], ["How is my market selected?", "The site auto-detects common Indonesia and Southeast Asia locale signals; you can also manually switch between US and ID/SEA at the top of the page."], ["I have other questions!", "Our support team is available daily via email and WhatsApp. Check out our Contact page for full support details."]])}</div>
+      <div class="reveal">${sectionHeading("FAQ", "Frequently asked questions")}${accordion([["Where can I review batch documentation?", "Open the Lab Reports page or the report panel on any product page. Available COA, heavy metals, and endotoxin PDFs are linked directly by variant when uploaded."], ["How do I track my order?", "Use the Order Tracking page with the order number and billing email. Status examples are stored locally for this static storefront."], ["Which markets are supported?", "The storefront supports a US online checkout path and an Indonesia / SEA COD path with phone or WhatsApp confirmation before dispatch."], ["How is my market selected?", "The site auto-detects common Indonesia and Southeast Asia locale signals; you can also manually switch between US and ID / SEA at the top of the page."], ["I have other questions", "Use the Contact page for email and WhatsApp support handoff details."]])}</div>
       <div class="reveal">${sectionHeading("Featured Guides", "In-depth research guides")}${articleGrid(blogPosts.slice(0, 3), true)}</div>
     </section>
 
@@ -760,14 +771,11 @@ function qualityFeature(iconName, title, text) {
   return `<article class="quality-feature"><div class="quality-icon">${icon(iconName)}</div><h3>${title}</h3><p>${text}</p></article>`;
 }
 
-function reviewCard(review) {
-  return `<article class="review-card">
-    <div class="review-stars" aria-label="5 out of 5 stars">${Array.from({ length: 5 }).map(() => icon("star")).join("")}</div>
-    <p class="review-body">"${review.body}"</p>
-    <div class="review-attribution">
-      <span class="review-avatar" aria-hidden="true">${review.initial}</span>
-      <div><strong>${review.name}</strong><small>Verified researcher</small></div>
-    </div>
+function confidenceCard(point) {
+  return `<article class="review-card confidence-card">
+    <div class="review-stars" aria-hidden="true">${icon(point.icon)}</div>
+    <h3>${esc(point.title)}</h3>
+    <p class="review-body">${esc(point.body)}</p>
   </article>`;
 }
 
@@ -1322,16 +1330,23 @@ function bindRoute() {
 }
 
 function bindAnnouncementRotator() {
+  if (window.__annInterval) {
+    clearInterval(window.__annInterval);
+    window.__annInterval = null;
+  }
   const track = document.querySelector("[data-announcement-track]");
   if (!track || ANNOUNCEMENTS.length < 2) return;
-  if (window.__annInterval) clearInterval(window.__annInterval);
   let index = 0;
   window.__annInterval = setInterval(() => {
     const msgs = track.querySelectorAll(".announcement-msg");
-    if (!msgs.length) return;
-    msgs[index].classList.remove("is-active");
+    if (!msgs.length || !track.isConnected) {
+      clearInterval(window.__annInterval);
+      window.__annInterval = null;
+      return;
+    }
+    msgs[index]?.classList.remove("is-active");
     index = (index + 1) % msgs.length;
-    msgs[index].classList.add("is-active");
+    msgs[index]?.classList.add("is-active");
   }, 4200);
 }
 

@@ -224,6 +224,9 @@ const sampleOrders = [
   }
 ];
 
+
+
+
 const root = document.querySelector("#root");
 const IS_FILE = location.protocol === "file:";
 const BASE_PATH = IS_FILE ? "" : window.__APP_BASE__ || getBasePath();
@@ -260,6 +263,21 @@ const CONTACT = {
   whatsappHref: "https://wa.me/?text=Hello%20MAXXFIT%20LABS%2C%20I%20need%20support%20with%20a%20research%20order.",
   address: "US and Indonesia / Southeast Asia support"
 };
+
+const ANNOUNCEMENTS = [
+  "US orders over $200 qualify for free shipping | Code RESEARCH10 for 10% off",
+  "Batch documentation linked when available | Research-use-only checkout",
+  "US online checkout | Indonesia / SEA COD confirmation before dispatch"
+];
+
+const TRUST_POINTS = [
+  { icon: "shield", title: "Research-use controls", body: "The site includes researcher verification, product disclaimers, and checkout language for lawful in-vitro laboratory research only." },
+  { icon: "file", title: "Report visibility", body: "COA, heavy metals, and endotoxin files are linked by variant when uploaded, with request messaging when a report is not yet posted." },
+  { icon: "truck", title: "Market-aware checkout", body: "US visitors use online checkout. Indonesia / SEA visitors see COD language and phone or WhatsApp confirmation before dispatch." },
+  { icon: "calc", title: "Planning tools", body: "The calculator helps estimate concentration, syringe units, dose volume, and doses per vial for lab workflow planning." },
+  { icon: "chat", title: "Support handoff", body: "Contact, WhatsApp, tracking, and local account states remain available across the storefront." },
+  { icon: "box", title: "Catalog structure", body: "Peptides, bundles, supplies, accessories, reports, and educational guides stay connected through the static storefront." }
+];
 
 // Toggle this to false to remove the researcher verification gate without deleting the UI.
 const RESEARCHER_GATE_ENABLED = true;
@@ -514,10 +532,12 @@ function navigate(path) {
 
 function announcement() {
   if (localStorage.getItem("promo-dismissed") === "1") return "";
+  const messages = ANNOUNCEMENTS.map(
+    (msg, i) => `<span class="announcement-msg${i === 0 ? " is-active" : ""}" data-announcement-index="${i}">${msg}</span>`
+  ).join("");
   return `
     <div class="announcement" role="region" aria-label="Store announcement">
-      <span>MAXXFIT LABS</span>
-      <span>Research-use-only catalog with US and Indonesia / Southeast Asia market options.</span>
+      <div class="announcement-track" data-announcement-track>${messages}</div>
       ${regionSwitcher()}
       <button type="button" data-dismiss-announcement aria-label="Dismiss announcement">${icon("x")}</button>
     </div>
@@ -639,14 +659,18 @@ function homePage() {
   return `
     <section class="hero band">
       <div class="container hero-grid">
-        <div class="hero-copy">
-          <span class="eyebrow">${icon("flask")} ${active.label} - ${active.currency}</span>
-          <h1>MAXXFIT LABS research peptides.</h1>
-          <p>Precision-sourced research materials with clear variant pricing, available lab documentation, and checkout options tailored for US and Indonesia / Southeast Asia markets.</p>
-          <div class="button-row"><a data-link class="btn primary" href="/shop">Shop catalog ${icon("arrow")}</a><a data-link class="btn secondary" href="/certifications">View lab reports</a><a data-link class="btn light" href="/peptide-calculator">${icon("calc")} Calculator</a></div>
-          <div class="stats-row">${stat(active.currency, "Market currency")}${stat("RUO", "Research use only")}${stat(active.checkoutLabel, "Checkout mode")}</div>
+        <div class="hero-copy reveal">
+          <span class="hero-pill"><span class="pulse-dot"></span> Batch documents when available | ${active.label} - ${active.currency}</span>
+          <h1>Premium research peptides <span class="text-accent">you can trust.</span></h1>
+          <p>MAXXFIT LABS delivers precision-sourced research materials with market-aware checkout, visible research-use language, and batch documentation links when available.</p>
+          <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
+          <div class="hero-stats-row">
+            ${heroStat(String(products.length), "Catalog items")}
+            ${heroStat("COA", "Reports when available")}
+            ${heroStat(active.checkoutLabel, "Checkout mode")}
+          </div>
         </div>
-        <div class="hero-visual">
+        <div class="hero-visual reveal">
           <div class="brand-shot">
             ${brandLogo("hero-logo")}
             <img src="${assetPath("assets/maxxfit/performance-grid.png")}" alt="MAXXFIT LABS campaign visuals">
@@ -654,15 +678,105 @@ function homePage() {
         </div>
       </div>
     </section>
-    <section class="section container">${sectionHeading("Catalog", "Best-selling research peptides", "Explore the core MAXXFIT LABS catalog with market-aware pricing and lab-document visibility.")}${productGrid(best)}<div class="centered"><a data-link class="btn secondary" href="/shop">View all products ${icon("arrow")}</a></div></section>
-    <section class="section surface-band"><div class="container">${sectionHeading("Bundles", "Research stacks and supplies", "Curated bundles and companion supplies for organized laboratory purchasing.")}<div class="product-grid">${bundles.map(productCard).join("")}</div></div></section>
-    <section class="section container feature-grid">${feature("test", "Lab reports", "COA, heavy metals, and endotoxin files are linked when uploaded for a product variant.")}${feature("shield", "Research-use compliance", "Product, cart, checkout, and legal pages keep research-only language visible.")}${feature("truck", "Regional fulfillment", "US and Indonesia / Southeast Asia visitors see market-specific currency, delivery, and confirmation details.")}${feature("chat", "Responsive support", "Email, WhatsApp handoff, tracking, and order verification are reachable from support pages.")}</section>
-    <section class="section in-the-wild"><div class="section-heading container"><span class="eyebrow">Visual System</span><h2>Science. Precision. Results.</h2><p>MAXXFIT LABS campaign assets carry the storefront look across product and education surfaces.</p></div><div class="ugc-strip">${[...wildImages, ...wildImages].map((src) => `<div class="ugc-tile"><img src="${assetPath(src)}" alt="MAXXFIT LABS campaign creative" loading="lazy"></div>`).join("")}</div></section>
-    <section class="section container tool-grid">${toolCard("calc", "Reconstitution Calculator", "Live units, concentration, dose volume, and doses-per-vial math.", "/peptide-calculator", "Open calculator")}${toolCard("shield", "Lab Reports", "Search available COA, heavy metals, and endotoxin PDFs.", "/certifications", "View reports")}${toolCard("truck", "Order Tracking", "Check order status with your order number and billing email.", "/order-tracking", "Track order")}</section>
-    <section class="section container consultation"><div class="advisor-portrait visual-panel" aria-hidden="true"><img src="${assetPath("assets/maxxfit/story-posters.png")}" alt=""></div><div><span class="eyebrow">Support</span><h2>Guidance for research orders.</h2><p>Need help reviewing available reports, selecting a market, or checking order status? MAXXFIT LABS support is set up for email and WhatsApp handoff.</p><div class="button-row"><a data-link class="btn primary" href="/contact">Contact support</a><a data-link class="btn secondary" href="/order-tracking">Track an order</a></div></div></section>
-    <section class="section container split-section"><div>${sectionHeading("FAQ", "Frequently asked questions")}${accordion([["Are these products for research use only?", "Yes. MAXXFIT LABS products are for lawful in-vitro laboratory research only and are not for human or animal consumption."], ["Where can I find lab reports?", "Open the Lab Reports page or the report panel on any product page. Available PDFs are linked directly; items without uploaded reports show an availability notice."], ["How is my market selected?", "The site can auto-detect common Indonesia and Southeast Asia locale signals, and you can manually switch between US and ID/SEA at the top of the page."], ["How is COD handled?", "Indonesia and Southeast Asia COD orders collect phone or WhatsApp details, then require confirmation before dispatch."]])}</div><div>${sectionHeading("Guides", "Research resources")}${articleGrid(blogPosts.slice(0, 3), true)}</div></section>
+
+    <section class="in-the-wild-band">
+      <div class="container section-heading-narrow reveal"><span class="eyebrow">In Real Life</span><h2>MAXXFIT LABS <span class="text-accent">in the wild.</span></h2></div>
+      <div class="marquee" aria-label="MAXXFIT LABS product photos" data-marquee>
+        <div class="marquee-track">
+          ${[...wildImages, ...wildImages, ...wildImages].map((src) => `<div class="marquee-item"><img src="${assetPath(src)}" alt="MAXXFIT LABS product in the wild" loading="lazy"></div>`).join("")}
+        </div>
+      </div>
+    </section>
+
+    <section class="tool-cta-band container">
+      <a data-link class="tool-cta reveal" href="/peptide-calculator">
+        <div class="tool-cta-icon">${icon("calc")}</div>
+        <div><strong>Reconstitution Calculator</strong><span>Get exact dosing volumes for any peptide in seconds.</span></div>
+        <span class="tool-cta-action">Open Calculator ${icon("arrow")}</span>
+      </a>
+      <a data-link class="tool-cta reveal" href="/certifications">
+        <div class="tool-cta-icon">${icon("shield")}</div>
+        <div><strong>Certificates of Analysis</strong><span>Browse HPLC, heavy metals, and endotoxin lab reports.</span></div>
+        <span class="tool-cta-action">View Reports ${icon("arrow")}</span>
+      </a>
+    </section>
+
+    <section class="section surface-band">
+      <div class="container">
+        <div class="section-heading reveal"><span class="eyebrow">Save More</span><h2>Peptide <span class="text-accent">Bundles.</span></h2><p>Curated multi-peptide stacks at a bundled price for organized laboratory purchasing.</p></div>
+        <div class="product-grid reveal">${bundles.map(productCard).join("")}</div>
+        <div class="centered"><a data-link class="btn secondary" href="/shop?category=Bundles">Shop All Bundles ${icon("arrow")}</a></div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="section-heading reveal"><span class="eyebrow">Our Products</span><h2>Best-selling <span class="text-accent">peptides.</span></h2><p>Explore popular research peptides with variant pricing and report visibility when available.</p></div>
+      <div class="reveal">${productGrid(best)}</div>
+      <div class="centered"><a data-link class="btn secondary" href="/shop">View All Products ${icon("arrow")}</a></div>
+    </section>
+
+    <section class="section quality-band">
+      <div class="container">
+        <div class="section-heading reveal"><span class="eyebrow">Why MAXXFIT LABS</span><h2>Quality you can <span class="text-accent">review.</span></h2><p>The storefront keeps documentation, checkout mode, and research-use context visible throughout the buying path.</p></div>
+        <div class="feature-grid reveal">
+          ${qualityFeature("test", "Report Access", "COA, heavy metals, and endotoxin documents are linked when uploaded for a product variant.")}
+          ${qualityFeature("shield", "Research-Use Language", "Product, cart, checkout, and legal pages keep in-vitro research-only language visible.")}
+          ${qualityFeature("truck", "Regional Fulfillment", "US and Indonesia / SEA visitors see market-specific currency, delivery, and confirmation details.")}
+          ${qualityFeature("chat", "Support Paths", "Email, WhatsApp handoff, tracking, and order verification remain reachable from support pages.")}
+        </div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="affiliate-band reveal">
+        <div>
+          <span class="eyebrow accent-light">Become an Affiliate</span>
+          <h2>Partner with <span class="text-accent">MAXXFIT LABS.</span></h2>
+          <p>Apply to join a partner program built around compliant research-use education, manual review, and approved discount-code support.</p>
+          <ul class="check-list">
+            <li>${icon("check")} Research-use messaging standards</li>
+            <li>${icon("check")} Discount-code and link support after approval</li>
+            <li>${icon("check")} Manual review before partner claims are published</li>
+            <li>${icon("check")} Application stored locally for review</li>
+          </ul>
+          <a data-link class="btn primary" href="/affiliate-registration">Apply Now ${icon("arrow")}</a>
+        </div>
+        <div class="affiliate-visual">
+          <img src="${assetPath("assets/maxxfit/story-posters.png")}" alt="MAXXFIT LABS creators">
+        </div>
+      </div>
+    </section>
+
+    <section class="section reviews-band">
+      <div class="container">
+        <div class="section-heading reveal"><span class="eyebrow">Verification</span><h2>Researcher confidence <span class="text-accent">points.</span></h2><p>Clear operational signals are surfaced before checkout so customers can review documentation, market rules, and support paths.</p></div>
+        <div class="reviews-grid reveal">${TRUST_POINTS.map(confidenceCard).join("")}</div>
+      </div>
+    </section>
+
+    <section class="section container split-section">
+      <div class="reveal">${sectionHeading("FAQ", "Frequently asked questions")}${accordion([["Where can I review batch documentation?", "Open the Lab Reports page or the report panel on any product page. Available COA, heavy metals, and endotoxin PDFs are linked directly by variant when uploaded."], ["How do I track my order?", "Use the Order Tracking page with the order number and billing email. Status examples are stored locally for this static storefront."], ["Which markets are supported?", "The storefront supports a US online checkout path and an Indonesia / SEA COD path with phone or WhatsApp confirmation before dispatch."], ["How is my market selected?", "The site auto-detects common Indonesia and Southeast Asia locale signals; you can also manually switch between US and ID / SEA at the top of the page."], ["I have other questions", "Use the Contact page for email and WhatsApp support handoff details."]])}</div>
+      <div class="reveal">${sectionHeading("Featured Guides", "In-depth research guides")}${articleGrid(blogPosts.slice(0, 3), true)}</div>
+    </section>
+
     ${ctaBand()}
   `;
+}
+
+function heroStat(value, label) {
+  return `<div class="hero-stat"><strong>${value}</strong><span>${label}</span></div>`;
+}
+
+function qualityFeature(iconName, title, text) {
+  return `<article class="quality-feature"><div class="quality-icon">${icon(iconName)}</div><h3>${title}</h3><p>${text}</p></article>`;
+}
+
+function confidenceCard(point) {
+  return `<article class="review-card confidence-card">
+    <div class="review-stars" aria-hidden="true">${icon(point.icon)}</div>
+    <h3>${esc(point.title)}</h3>
+    <p class="review-body">${esc(point.body)}</p>
+  </article>`;
 }
 
 function shopPage() {
@@ -943,6 +1057,8 @@ function notFoundPage() {
 }
 
 function bindGlobal() {
+  bindAnnouncementRotator();
+  bindScrollReveal();
   document.querySelector("[data-dismiss-announcement]")?.addEventListener("click", () => {
     localStorage.setItem("promo-dismissed", "1");
     render();
@@ -1211,6 +1327,45 @@ function bindRoute() {
     state.account = false;
     render();
   });
+}
+
+function bindAnnouncementRotator() {
+  if (window.__annInterval) {
+    clearInterval(window.__annInterval);
+    window.__annInterval = null;
+  }
+  const track = document.querySelector("[data-announcement-track]");
+  if (!track || ANNOUNCEMENTS.length < 2) return;
+  let index = 0;
+  window.__annInterval = setInterval(() => {
+    const msgs = track.querySelectorAll(".announcement-msg");
+    if (!msgs.length || !track.isConnected) {
+      clearInterval(window.__annInterval);
+      window.__annInterval = null;
+      return;
+    }
+    msgs[index]?.classList.remove("is-active");
+    index = (index + 1) % msgs.length;
+    msgs[index]?.classList.add("is-active");
+  }, 4200);
+}
+
+function bindScrollReveal() {
+  const items = document.querySelectorAll(".reveal:not(.is-visible)");
+  if (!items.length) return;
+  if (!("IntersectionObserver" in window)) {
+    items.forEach((el) => el.classList.add("is-visible"));
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        io.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+  items.forEach((el) => io.observe(el));
 }
 
 function persistCheckoutData() {
