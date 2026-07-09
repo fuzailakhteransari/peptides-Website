@@ -17,5 +17,5 @@ class SpaHandler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = ThreadingHTTPServer(("127.0.0.1", PORT), SpaHandler)
-    print(f"Serving Research Peptide Storefront at http://127.0.0.1:{PORT}")
+    print(f"Serving MAXXFIT LABS Research Storefront at http://127.0.0.1:{PORT}")
     server.serve_forever()

@@ -10,6 +10,39 @@ import {
 const root = document.querySelector("#root");
 const IS_FILE = location.protocol === "file:";
 const BASE_PATH = IS_FILE ? "" : window.__APP_BASE__ || getBasePath();
+const MARKETS = {
+  us: {
+    key: "us",
+    label: "US Market",
+    shortLabel: "US",
+    currency: "USD",
+    locale: "en-US",
+    fx: 1,
+    freeShipThreshold: 200,
+    checkoutLabel: "Payment",
+    shipping: "UPS or express courier. Online checkout only.",
+    orderMode: "Online checkout only. No COD is offered for the US market."
+  },
+  sea: {
+    key: "sea",
+    label: "Indonesia / SEA",
+    shortLabel: "ID / SEA",
+    currency: "IDR",
+    locale: "id-ID",
+    fx: 16000,
+    freeShipThreshold: 0,
+    checkoutLabel: "COD",
+    shipping: "Local courier delivery. Dispatch follows call or WhatsApp confirmation.",
+    orderMode: "COD only. A phone or WhatsApp confirmation is required before dispatch."
+  }
+};
+
+const CONTACT = {
+  email: "support@maxxfitlabs.com",
+  phoneDisplay: "Phone support available by email request",
+  whatsappHref: "https://wa.me/?text=Hello%20MAXXFIT%20LABS%2C%20I%20need%20support%20with%20a%20research%20order.",
+  address: "US and Indonesia / Southeast Asia support"
+};
 
 const state = {
   cart: readJson("research-cart", []),
@@ -22,9 +55,14 @@ const state = {
   shopStock: false,
   productVariant: {},
   productQty: {},
+  market: localStorage.getItem("maxxfit-market") || detectMarket(),
+  priceOverrides: readJson("maxxfit-price-overrides", {}),
   calculator: { vialMg: 10, waterMl: 2, doseMg: 0.25 },
   checkoutStep: 1,
-  account: localStorage.getItem("demo-account") === "1"
+  checkoutMaxStep: Number(localStorage.getItem("maxxfit-checkout-max-step") || 1),
+  checkoutData: readJson("maxxfit-checkout-draft", {}),
+  lastOrder: readJson("maxxfit-last-order", null),
+  account: localStorage.getItem("maxxfit-account") === "1"
 };
 
 document.addEventListener("click", (event) => {
@@ -38,12 +76,21 @@ document.addEventListener("click", (event) => {
 
 window.addEventListener("popstate", render);
 window.addEventListener("hashchange", render);
+window.addEventListener("scroll", () => {
+  document.documentElement.classList.toggle("has-scrolled", window.scrollY > 16);
+}, { passive: true });
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && (state.searchOpen || state.cartOpen || state.drawerOpen)) {
+    closeOverlays();
+  }
+});
 
 render();
 
 function render() {
-  const { pathname } = location;
-  const checkout = pathname === "/checkout";
+  const checkout = currentPath().split("?")[0].replace(/\/$/, "") === "/checkout";
+  updateDocumentMeta();
   root.innerHTML = `
     <a class="skip-link" href="#main">Skip to content</a>
     ${checkout ? "" : announcement()}
@@ -60,10 +107,107 @@ function render() {
   bindRoute();
 }
 
+function updateDocumentMeta() {
+  const meta = pageMeta();
+  document.title = meta.title;
+  setMeta("description", meta.description);
+  setMeta("robots", meta.robots || "index,follow");
+  setProperty("og:title", meta.title);
+  setProperty("og:description", meta.description);
+  setProperty("og:type", "website");
+  setProperty("og:image", assetPath("assets/maxxfit/campaign-board.png"));
+  setMeta("twitter:card", "summary_large_image");
+  setCanonical(browserPath(currentPath().split("#")[0] || "/"));
+}
+
+function pageMeta() {
+  const path = currentPath().split("?")[0].replace(/\/$/, "") || "/";
+  if (path === "/shop") return meta("MAXXFIT LABS Catalog", "Shop MAXXFIT LABS research peptides, bundles, supplies, and accessories with market-aware pricing.");
+  if (path.startsWith("/product/")) {
+    const product = products.find((item) => item.slug === path.split("/").pop());
+    if (product) return meta(`${product.name} | MAXXFIT LABS`, `${product.short} Review variants, pricing, and available lab reports.`);
+  }
+  if (path === "/certifications") return meta("Lab Reports | MAXXFIT LABS", "Search available MAXXFIT LABS certificates of analysis, heavy metals reports, and endotoxin reports.");
+  if (path === "/peptide-calculator") return meta("Peptide Calculator | MAXXFIT LABS", "Plan concentration, syringe units, dose volume, and doses per vial for lawful lab research workflows.");
+  if (path === "/checkout") return meta("Checkout | MAXXFIT LABS", "Complete a market-aware MAXXFIT LABS research order.");
+  if (path === "/order-confirmation") return meta("Order Confirmation | MAXXFIT LABS", "MAXXFIT LABS order confirmation and tracking next steps.", "noindex,follow");
+  if (path === "/admin") return meta("Admin | MAXXFIT LABS", "Direct-access catalog administration for MAXXFIT LABS.", "noindex,nofollow");
+  if (path === "/contact") return meta("Contact | MAXXFIT LABS", "Contact MAXXFIT LABS support for research order and lab report assistance.");
+  return meta("MAXXFIT LABS Research Peptides", "MAXXFIT LABS research peptide storefront with lab reports, cart, calculator, tracking, and market-aware checkout.");
+}
+
+function meta(title, description, robots = "index,follow") {
+  return { title, description, robots };
+}
+
+function setMeta(name, content) {
+  let tag = document.querySelector(`meta[name="${name}"]`);
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute("name", name);
+    document.head.append(tag);
+  }
+  tag.setAttribute("content", content);
+}
+
+function setProperty(property, content) {
+  let tag = document.querySelector(`meta[property="${property}"]`);
+  if (!tag) {
+    tag = document.createElement("meta");
+    tag.setAttribute("property", property);
+    document.head.append(tag);
+  }
+  tag.setAttribute("content", content);
+}
+
+function setCanonical(path) {
+  let tag = document.querySelector('link[rel="canonical"]');
+  if (!tag) {
+    tag = document.createElement("link");
+    tag.setAttribute("rel", "canonical");
+    document.head.append(tag);
+  }
+  const href = IS_FILE ? location.href.split("#")[0] : new URL(path, location.origin).href;
+  tag.setAttribute("href", href);
+}
+
 function getBasePath() {
   if (!location.hostname.endsWith("github.io")) return "";
   const firstSegment = location.pathname.split("/").filter(Boolean)[0];
   return firstSegment ? `/${firstSegment}` : "";
+}
+
+function detectMarket() {
+  const locale = (navigator.language || "").toLowerCase();
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  const seaLocales = ["id", "ms", "th", "vi", "fil", "tl"];
+  const seaZones = ["Asia/Jakarta", "Asia/Makassar", "Asia/Pontianak", "Asia/Bangkok", "Asia/Kuala_Lumpur", "Asia/Singapore", "Asia/Ho_Chi_Minh", "Asia/Manila"];
+  return seaLocales.some((prefix) => locale.startsWith(prefix)) || seaZones.includes(timeZone) ? "sea" : "us";
+}
+
+function market() {
+  return MARKETS[state.market] || MARKETS.us;
+}
+
+function marketPrice(value) {
+  const active = market();
+  return formatMoney(value * active.fx, active.currency, active.locale);
+}
+
+function getVariantPrice(variant) {
+  const override = Number(state.priceOverrides[variant.sku]);
+  return Number.isFinite(override) && override > 0 ? override : variant.price;
+}
+
+function assetPath(path) {
+  if (!path) return "";
+  if (/^(https?:|data:|blob:)/.test(path)) return path;
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  return IS_FILE ? `.${clean}` : `${BASE_PATH}${clean}`;
+}
+
+function brandLogo(className = "brand-logo") {
+  return `<img class="${className}" src="${assetPath("assets/maxxfit/logo.jpeg")}" alt="MAXXFIT LABS">`;
 }
 
 function currentPath() {
@@ -128,9 +272,11 @@ function route() {
   if (path === "/affiliate-registration") return affiliatePage();
   if (path === "/about") return aboutPage();
   if (path === "/payments") return paymentsPage();
+  if (path === "/admin") return adminPage();
   if (["/terms", "/privacy", "/shipping-returns"].includes(path)) return legalPage(path);
   if (path === "/cart") return cartPage();
   if (path === "/checkout") return checkoutPage();
+  if (path === "/order-confirmation") return orderConfirmationPage();
   if (path === "/account") return accountPage();
   return notFoundPage();
 }
@@ -149,8 +295,9 @@ function announcement() {
   if (localStorage.getItem("promo-dismissed") === "1") return "";
   return `
     <div class="announcement" role="region" aria-label="Store announcement">
-      <span>Free Shipping On Any Order</span>
-      <span>Free UPS 2nd Day Air Shipping On Orders Over $200 | Code USA250 for 15% Off</span>
+      <span>MAXXFIT LABS</span>
+      <span>Research-use-only catalog with US and Indonesia / Southeast Asia market options.</span>
+      ${regionSwitcher()}
       <button type="button" data-dismiss-announcement aria-label="Dismiss announcement">${icon("x")}</button>
     </div>
   `;
@@ -158,12 +305,13 @@ function announcement() {
 
 function header(checkout) {
   const count = state.cart.reduce((sum, line) => sum + line.qty, 0);
+  const active = market();
   return `
     <header class="site-header ${checkout ? "checkout-header" : ""}">
       <div class="container header-inner">
-        <a data-link href="/" class="brand" aria-label="PSPeptides storefront home">
-          <span class="brand-mark">PS</span>
-          <span><strong>PSPeptides<sup>TM</sup></strong></span>
+        <a data-link href="/" class="brand" aria-label="MAXXFIT LABS storefront home">
+          ${brandLogo()}
+          <span><strong>MAXXFIT LABS</strong><small>Research Storefront</small></span>
         </a>
         ${
           checkout
@@ -173,7 +321,7 @@ function header(checkout) {
         <div class="header-actions">
           ${
             checkout
-              ? `<span class="secure-badge">${icon("lock")} Secure checkout</span>`
+              ? `<span class="secure-badge">${icon("lock")} ${active.checkoutLabel} checkout</span>`
               : `
                 <button class="icon-btn" data-open-search aria-label="Open search">${icon("search")}</button>
                 <a data-link class="icon-btn" href="/account" aria-label="Account">${icon("user")}</a>
@@ -186,21 +334,27 @@ function header(checkout) {
       ${
         checkout
           ? ""
-          : `<div class="trust-strip"><div class="container trust-strip-inner">
-              <span>${icon("box")} US fulfillment placeholder</span>
-              <span>${icon("shield")} COA-first catalog</span>
-              <span>${icon("truck")} Tracking flow included</span>
+            : `<div class="trust-strip"><div class="container trust-strip-inner">
+              <span>${icon("box")} ${active.shipping}</span>
+              <span>${icon("shield")} Lab reports linked when available</span>
+              <span>${icon("truck")} ${active.orderMode}</span>
             </div></div>`
       }
     </header>
   `;
 }
 
+function regionSwitcher() {
+  return `<div class="market-switcher" role="group" aria-label="Market selection">${Object.values(MARKETS)
+    .map((item) => `<button type="button" data-market="${item.key}" class="${state.market === item.key ? "active" : ""}" aria-pressed="${state.market === item.key}">${item.shortLabel}</button>`)
+    .join("")}</div>`;
+}
+
 function navLinks() {
   const links = [
     ["Home", "/"],
     ["Shop", "/shop"],
-    ["Certifications", "/certifications"],
+    ["COA", "/certifications"],
     ["Blog", "/blog"],
     ["Contact", "/contact"],
     ["Order Tracking", "/order-tracking"]
@@ -220,7 +374,8 @@ function mobileDrawer() {
   return `
     <div class="scrim" data-close-overlay role="presentation">
       <aside class="mobile-drawer" role="dialog" aria-modal="true" aria-label="Mobile navigation">
-        <div class="drawer-head"><span class="brand-mark">PS</span><button class="icon-btn" data-close-overlay aria-label="Close navigation">${icon("x")}</button></div>
+        <div class="drawer-head">${brandLogo("brand-logo drawer-logo")}<button class="icon-btn" data-close-overlay aria-label="Close navigation">${icon("x")}</button></div>
+        ${regionSwitcher()}
         ${navLinks()}
         <a data-link href="/verify">Verify Order</a>
         <a data-link href="/peptide-calculator">Calculator</a>
@@ -230,19 +385,20 @@ function mobileDrawer() {
 }
 
 function footer() {
+  const active = market();
   return `
     <footer class="site-footer">
       <div class="container footer-grid">
         <section>
-          <a data-link href="/" class="brand footer-brand"><span class="brand-mark">PS</span><span><strong>PSPeptides<sup>TM</sup></strong><small>Research Storefront</small></span></a>
-          <p>Original, brand-ready research ecommerce shell with catalog, documents, cart, checkout, and support flows.</p>
-          <div class="social-row" aria-label="Social links placeholder"><span>TG</span><span>TT</span><span>DC</span></div>
+          <a data-link href="/" class="brand footer-brand">${brandLogo()}<span><strong>MAXXFIT LABS</strong><small>Research Storefront</small></span></a>
+          <p>Premium research peptide storefront with available lab reports, market-aware ordering, and responsive support.</p>
+          <div class="social-row" aria-label="Support channels"><a href="${CONTACT.whatsappHref}" target="_blank" rel="noopener">WA</a><a href="mailto:${CONTACT.email}">EM</a><a data-link href="/contact">Help</a></div>
         </section>
-        ${footerColumn("Quick Links", [["Shop All", "/shop"], ["My Account", "/account"], ["Lab Results", "/certifications"], ["Calculator", "/peptide-calculator"], ["Affiliate Program", "/affiliate-registration"]])}
+        ${footerColumn("Quick Links", [["Shop All", "/shop"], ["My Account", "/account"], ["Lab Results", "/certifications"], ["Calculator", "/peptide-calculator"]])}
         ${footerColumn("Support", [["Contact", "/contact"], ["Terms", "/terms"], ["Order Tracking", "/order-tracking"], ["Verify Order", "/verify"], ["Payments", "/payments"], ["About", "/about"]])}
-        <section><h2>Contact</h2><p>support@example.com</p><p>+1 (888) 000-0000</p><p>7 days a week: 9AM - 10PM EST placeholder.</p>${newsletter()}</section>
+        <section><h2>${active.label}</h2><p><a href="mailto:${CONTACT.email}">${CONTACT.email}</a></p><p>${CONTACT.phoneDisplay}</p><p>${active.orderMode}</p>${newsletter()}</section>
       </div>
-      <div class="legal-bar"><div class="container">For research and laboratory use only. Not for human or animal consumption. Products, claims, certificates, advisor credentials, and payment options must be verified before production launch.</div></div>
+      <div class="legal-bar"><div class="container">For lawful in-vitro research and laboratory use only. Not for human or animal consumption. Review product documentation and local requirements before ordering.</div></div>
     </footer>
   `;
 }
@@ -256,30 +412,34 @@ function newsletter() {
 }
 
 function homePage() {
-  const best = products.slice(0, 6);
+  const active = market();
+  const best = products.filter((p) => p.category === "Peptides").slice(0, 8);
   const bundles = products.filter((p) => p.category === "Bundles");
   return `
     <section class="hero band">
       <div class="container hero-grid">
         <div class="hero-copy">
-          <span class="eyebrow">${icon("flask")} US Made & Shipped | Same Day Shipping | Now Shipping Internationally</span>
-          <h1>Premium Research <span>Peptides</span> You Can Trust</h1>
-          <p>PSPeptides delivers high-quality US-made research peptides with verified 99%+ purity. Every batch is rigorously tested by independent laboratories. Orders ship same or next business day.</p>
-          <div class="button-row"><a data-link class="btn primary" href="/shop">Shop Peptides ${icon("arrow")}</a><a data-link class="btn secondary" href="/certifications">View Certifications</a><a data-link class="btn light" href="/contact">${icon("chat")} 24/7 Live Chat</a></div>
-          <div class="stats-row">${stat("99%+", "Verified Purity")}${stat("10K+", "Orders Shipped")}${stat("Shipped Same Day", "Most orders within 2-24 hours")}</div>
+          <span class="eyebrow">${icon("flask")} ${active.label} - ${active.currency}</span>
+          <h1>MAXXFIT LABS research peptides.</h1>
+          <p>Precision-sourced research materials with clear variant pricing, available lab documentation, and checkout options tailored for US and Indonesia / Southeast Asia markets.</p>
+          <div class="button-row"><a data-link class="btn primary" href="/shop">Shop catalog ${icon("arrow")}</a><a data-link class="btn secondary" href="/certifications">View lab reports</a><a data-link class="btn light" href="/peptide-calculator">${icon("calc")} Calculator</a></div>
+          <div class="stats-row">${stat(active.currency, "Market currency")}${stat("RUO", "Research use only")}${stat(active.checkoutLabel, "Checkout mode")}</div>
         </div>
-        <div class="hero-visual" aria-hidden="true"></div>
+        <div class="hero-visual">
+          <div class="brand-shot">
+            ${brandLogo("hero-logo")}
+            <img src="${assetPath("assets/maxxfit/performance-grid.png")}" alt="MAXXFIT LABS campaign visuals">
+          </div>
+        </div>
       </div>
     </section>
-    <section class="section in-the-wild"><div class="section-heading container"><span class="eyebrow">In Real Life</span><h2>PSPeptides <span>In The Wild</span></h2></div><div class="ugc-strip">${[...wildImages, ...wildImages, ...wildImages].map((src, i) => `<div class="ugc-tile"><img src="${src}" alt="Peptides in the wild" loading="lazy"></div>`).join("")}</div></section>
-    <section class="section container tool-grid">${toolCard("calc", "Reconstitution Calculator", "Live units, concentration, dose volume, and doses-per-vial math.", "/peptide-calculator", "Open calculator")}${toolCard("book", "Reconstitution Video Guide", "Guide layout for tutorials, quality explainers, and handling workflows.", "/blog", "Watch guide")}</section>
-    <section class="section surface-band"><div class="container">${sectionHeading("Save more", "Peptide bundles", "Curated multi-peptide stacks at a bundled price - everything a protocol needs in one click.")}<div class="product-grid">${bundles.map(productCard).join("")}</div></div></section>
-    <section class="section container">${sectionHeading("Our products", "Best-selling peptides", "Explore our most popular research peptides, each verified for purity and potency.")}${productGrid(best)}<div class="centered"><a data-link class="btn secondary" href="/shop">View all products ${icon("arrow")}</a></div></section>
-    <section class="section container feature-grid">${feature("test", "Report-first pages", "COA links appear in product pages and the lab results hub.")}${feature("shield", "Quality you can count on", "Research-use-only language appears across global surfaces.")}${feature("truck", "Fast fulfillment flow", "Free shipping meter, checkout summary, and order tracking are wired.")}${feature("chat", "Support hub", "Chat, phone, email, contact form, and support hours layout included.")}</section>
-    <section class="section container affiliate-band"><div><span class="eyebrow">Affiliate program</span><h2>Earn with a complete creator flow</h2><p>A complete application page is included with social handles, audience size, terms checkbox, validation, and success state.</p><ul class="check-list"><li>Commission copy placeholders</li><li>Tracking-link language ready for your platform</li><li>No fabricated creator profiles</li></ul></div><a data-link class="btn primary" href="/affiliate-registration">Apply now</a></section>
-    <section class="section surface-band"><div class="container">${sectionHeading("Reviews", "Verified-review slots", "The layout is ready for Trustpilot or another verified review source. Placeholder cards are clearly labeled until real data is connected.")}<div class="review-grid">${["Fast fulfillment slot", "Quality document slot", "Support experience slot"].map((label) => `<article class="review-card"><div class="stars">${"".padEnd(5, " ").split("").map(() => icon("star")).join("")}</div><p>${label}: connect verified review feed before launch.</p><strong>Verified review placeholder</strong></article>`).join("")}</div></div></section>
-    <section class="section container consultation"><div class="advisor-portrait" aria-hidden="true">${icon("user-large")}</div><div><span class="eyebrow">Expert guidance</span><h2>Consultation CTA shell</h2><p>Use this area for your real credentialed advisor, booking link, and verified qualifications. The credentials pattern is represented without claims.</p><div class="button-row"><a data-link class="btn primary" href="/contact">Contact support</a><button class="btn secondary" type="button">Credential placeholder</button></div></div></section>
-    <section class="section container split-section"><div>${sectionHeading("FAQ", "Frequently asked questions")}${accordion([["Do the trust documents work locally?", "Yes. Links are wired as stable placeholder paths, ready for your real PDF certificates."], ["Can customers track orders?", "The tracking page includes a local demo lookup. Try order RS-1042 with lab@example.com."], ["Is checkout connected to payments?", "The local checkout validates the form and creates a demo order. Real payment integration can be added next."], ["Can the company name and images be replaced?", "Yes. Branding, visuals, copy, social links, support details, and certificates are isolated."]])}</div><div>${sectionHeading("Featured guides", "In-depth research guides")}${articleGrid(blogPosts.slice(0, 3), true)}</div></section>
+    <section class="section container">${sectionHeading("Catalog", "Best-selling research peptides", "Explore the core MAXXFIT LABS catalog with market-aware pricing and lab-document visibility.")}${productGrid(best)}<div class="centered"><a data-link class="btn secondary" href="/shop">View all products ${icon("arrow")}</a></div></section>
+    <section class="section surface-band"><div class="container">${sectionHeading("Bundles", "Research stacks and supplies", "Curated bundles and companion supplies for organized laboratory purchasing.")}<div class="product-grid">${bundles.map(productCard).join("")}</div></div></section>
+    <section class="section container feature-grid">${feature("test", "Lab reports", "COA, heavy metals, and endotoxin files are linked when uploaded for a product variant.")}${feature("shield", "Research-use compliance", "Product, cart, checkout, and legal pages keep research-only language visible.")}${feature("truck", "Regional fulfillment", "US and Indonesia / Southeast Asia visitors see market-specific currency, delivery, and confirmation details.")}${feature("chat", "Responsive support", "Email, WhatsApp handoff, tracking, and order verification are reachable from support pages.")}</section>
+    <section class="section in-the-wild"><div class="section-heading container"><span class="eyebrow">Visual System</span><h2>Science. Precision. Results.</h2><p>MAXXFIT LABS campaign assets carry the storefront look across product and education surfaces.</p></div><div class="ugc-strip">${[...wildImages, ...wildImages].map((src) => `<div class="ugc-tile"><img src="${assetPath(src)}" alt="MAXXFIT LABS campaign creative" loading="lazy"></div>`).join("")}</div></section>
+    <section class="section container tool-grid">${toolCard("calc", "Reconstitution Calculator", "Live units, concentration, dose volume, and doses-per-vial math.", "/peptide-calculator", "Open calculator")}${toolCard("shield", "Lab Reports", "Search available COA, heavy metals, and endotoxin PDFs.", "/certifications", "View reports")}${toolCard("truck", "Order Tracking", "Check order status with your order number and billing email.", "/order-tracking", "Track order")}</section>
+    <section class="section container consultation"><div class="advisor-portrait visual-panel" aria-hidden="true"><img src="${assetPath("assets/maxxfit/story-posters.png")}" alt=""></div><div><span class="eyebrow">Support</span><h2>Guidance for research orders.</h2><p>Need help reviewing available reports, selecting a market, or checking order status? MAXXFIT LABS support is set up for email and WhatsApp handoff.</p><div class="button-row"><a data-link class="btn primary" href="/contact">Contact support</a><a data-link class="btn secondary" href="/order-tracking">Track an order</a></div></div></section>
+    <section class="section container split-section"><div>${sectionHeading("FAQ", "Frequently asked questions")}${accordion([["Are these products for research use only?", "Yes. MAXXFIT LABS products are for lawful in-vitro laboratory research only and are not for human or animal consumption."], ["Where can I find lab reports?", "Open the Lab Reports page or the report panel on any product page. Available PDFs are linked directly; items without uploaded reports show an availability notice."], ["How is my market selected?", "The site can auto-detect common Indonesia and Southeast Asia locale signals, and you can manually switch between US and ID/SEA at the top of the page."], ["How is COD handled?", "Indonesia and Southeast Asia COD orders collect phone or WhatsApp details, then require confirmation before dispatch."]])}</div><div>${sectionHeading("Guides", "Research resources")}${articleGrid(blogPosts.slice(0, 3), true)}</div></section>
     ${ctaBand()}
   `;
 }
@@ -287,29 +447,58 @@ function homePage() {
 function shopPage() {
   const params = new URLSearchParams(location.search);
   const active = params.get("category") || "Peptides";
-  let items = products.filter((product) => product.category === active);
-  if (state.shopQuery.trim()) {
-    const q = state.shopQuery.toLowerCase();
-    items = items.filter((product) => `${product.name} ${product.group} ${product.short}`.toLowerCase().includes(q));
-  }
-  if (state.shopStock) items = items.filter((product) => product.stock !== "out-of-stock");
-  if (state.shopSort === "price-low") items = [...items].sort((a, b) => a.variants[0].price - b.variants[0].price);
-  if (state.shopSort === "price-high") items = [...items].sort((a, b) => b.variants[0].price - a.variants[0].price);
-  if (state.shopSort === "new") items = [...items].reverse();
+  if (!state.shopQuery && params.has("q")) state.shopQuery = params.get("q") || "";
+  if (params.has("sort")) state.shopSort = params.get("sort") || "featured";
+  if (params.has("stock")) state.shopStock = params.get("stock") === "1";
+  const items = filteredShopItems(active);
   return `
     <section class="section container">
-      ${pageHero("Shop", "Research catalog", "Tabbed catalog, sort controls, stock states, quick-add bundles, and variant product pages.")}
-      <div class="trust-pill-row">${["Batch-specific report links", "Same or next business day fulfillment placeholder", "Secure checkout shell", "Support and tracking flows included"].map((item) => `<span>${icon("check")} ${item}</span>`).join("")}</div>
+      ${pageHero("Shop", "MAXXFIT LABS catalog", "Browse research peptides, bundles, supplies, and accessories with market-aware pricing.")}
+      <div class="trust-pill-row">${["Lab reports linked when available", market().shipping, market().orderMode, "Support and tracking included"].map((item) => `<span>${icon("check")} ${item}</span>`).join("")}</div>
       <div class="category-tabs" role="tablist">${categories.map((cat) => `<button data-category="${cat}" class="${active === cat ? "active" : ""}" role="tab" aria-selected="${active === cat}">${cat}</button>`).join("")}</div>
       <div class="catalog-toolbar">
-        <label>Search products<input data-shop-query value="${esc(state.shopQuery)}" placeholder="Search by name or category"></label>
+        <label>Search products<input data-shop-query value="${esc(state.shopQuery)}" placeholder="Search by name, variant, category, or SKU"></label>
         <label>Sort<select data-shop-sort><option value="featured">Featured</option><option value="new">Newest</option><option value="price-low">Price low to high</option><option value="price-high">Price high to low</option></select></label>
         <label class="checkbox-label"><input data-shop-stock type="checkbox" ${state.shopStock ? "checked" : ""}> In stock only</label>
       </div>
-      <p class="result-count" aria-live="polite">Showing ${items.length} products in ${active}.</p>
-      ${productGrid(items)}
+      <p class="result-count" data-shop-count aria-live="polite">Showing ${items.length} products in ${active}.</p>
+      <div data-shop-results>${productGrid(items)}</div>
     </section>
   `;
+}
+
+function filteredShopItems(active) {
+  let items = products.filter((product) => product.category === active);
+  if (state.shopQuery.trim()) {
+    const q = state.shopQuery.toLowerCase();
+    items = items.filter((product) => {
+      const variantText = product.variants.map((variant) => `${variant.label} ${variant.sku}`).join(" ");
+      return `${product.name} ${product.category} ${product.group} ${product.short} ${variantText}`.toLowerCase().includes(q);
+    });
+  }
+  if (state.shopStock) items = items.filter((product) => product.stock !== "out-of-stock");
+  if (state.shopSort === "price-low") items = [...items].sort((a, b) => getVariantPrice(a.variants[0]) - getVariantPrice(b.variants[0]));
+  if (state.shopSort === "price-high") items = [...items].sort((a, b) => getVariantPrice(b.variants[0]) - getVariantPrice(a.variants[0]));
+  if (state.shopSort === "new") items = [...items].reverse();
+  return items;
+}
+
+function updateShopResults() {
+  const params = new URLSearchParams(location.search);
+  const active = params.get("category") || "Peptides";
+  const items = filteredShopItems(active);
+  const resultTarget = document.querySelector("[data-shop-results]");
+  const countTarget = document.querySelector("[data-shop-count]");
+  if (resultTarget) resultTarget.innerHTML = productGrid(items);
+  if (countTarget) countTarget.textContent = `Showing ${items.length} products in ${active}.`;
+  params.set("category", active);
+  if (state.shopQuery.trim()) params.set("q", state.shopQuery.trim());
+  else params.delete("q");
+  if (state.shopSort !== "featured") params.set("sort", state.shopSort);
+  else params.delete("sort");
+  if (state.shopStock) params.set("stock", "1");
+  else params.delete("stock");
+  history.replaceState({}, "", browserPath(`/shop?${params.toString()}`));
 }
 
 function productPage(slug) {
@@ -317,37 +506,38 @@ function productPage(slug) {
   if (!product) return notFoundPage();
   const selectedSku = state.productVariant[slug] || product.variants[0].sku;
   const selected = product.variants.find((item) => item.sku === selectedSku) || product.variants[0];
+  const selectedPrice = getVariantPrice(selected);
   const qty = state.productQty[slug] || 1;
-  const total = linePrice(selected.price, qty);
+  const total = linePrice(selectedPrice, qty);
   const related = products.filter((item) => item.slug !== slug && (item.category === product.category || item.category.includes("Supplies"))).slice(0, 4);
   return `
     <section class="section container product-page">
       <nav class="breadcrumbs" aria-label="Breadcrumb"><a data-link href="/">Home</a><span>/</span><a data-link href="/shop">Shop</a><span>/</span><span aria-current="page">${esc(product.name)}</span></nav>
       <div class="pdp-grid">
-        <div class="gallery">${productVisual(product, true)}<div class="thumbnail-row">${[1, 2, 3].map((n) => `<button type="button" aria-label="View placeholder image ${n}">${productVisual(product)}</button>`).join("")}</div></div>
+        <div class="gallery">${productVisual(product, true, selected)}<div class="thumbnail-row">${product.variants.slice(0, 4).map((variant) => `<button type="button" data-variant="${variant.sku}" aria-label="View ${esc(variant.label)}">${productVisual(product, false, variant)}</button>`).join("")}</div></div>
         <aside class="buy-box">
           <span class="category-label">${product.group}</span>
           <h1>${product.name}</h1>
           <p>${product.description}</p>
-          <div class="price-live" aria-live="polite"><strong>${formatMoney(total)}</strong><span>${qty > 1 ? `${formatMoney(selected.price)} each before ${Math.round(tierDiscount(qty) * 100)}% tier savings` : `${formatMoney(selected.price)} per unit`}</span></div>
+          <div class="price-live" aria-live="polite"><strong>${marketPrice(total)}</strong><span>${qty > 1 ? `${marketPrice(selectedPrice)} each before ${Math.round(tierDiscount(qty) * 100)}% tier savings` : `${marketPrice(selectedPrice)} per unit`}</span></div>
           <fieldset class="variant-group"><legend>MG or format</legend><div class="variant-buttons" role="radiogroup">${product.variants.map((variant) => `<button data-variant="${variant.sku}" class="${variant.sku === selected.sku ? "active" : ""}" aria-pressed="${variant.sku === selected.sku}">${variant.label}</button>`).join("")}</div></fieldset>
           <div class="tier-grid">${[1, 2, 3].map((tier) => `<button data-tier="${tier}" class="${qty === tier ? "active" : ""}"><strong>${tier === 3 ? "3+" : tier} bottle${tier > 1 ? "s" : ""}</strong><span>${tier === 1 ? "Standard" : `${Math.round(tierDiscount(tier) * 100)}% off`}</span></button>`).join("")}</div>
           <div class="quantity-row">${quantityStepper(qty)}<button class="btn primary grow" data-add="${product.slug}" data-sku="${selected.sku}" data-qty="${qty}">${icon("cart")} Add to cart</button></div>
           ${trustMicrocopy()}
           ${coaLinks(product, selected)}
-          <div class="payment-icons" aria-label="Payment methods placeholder"><span>Visa</span><span>Amex</span><span>Apple Pay</span><span>Klarna</span></div>
+          <div class="payment-icons" aria-label="Checkout method"><span>${market().currency}</span><span>${market().checkoutLabel}</span><span>${market().key === "sea" ? "COD" : "Online"}</span><span>${market().key === "sea" ? "WhatsApp" : "No COD"}</span></div>
           <p class="ruo-note">For lawful in-vitro research use only. Not for human or animal consumption.</p>
         </aside>
       </div>
       <div class="pdp-content"><aside class="toc"><a href="#overview">Overview</a><a href="#specs">Specifications</a><a href="#protocol">Reconstitution</a><a href="#faq">FAQ</a></aside><article class="prose">
-        <section id="overview"><h2>Research overview</h2><p>${product.name} is represented with original placeholder copy. Use this structure for reviewed mechanism, application, and citation content.</p><ul>${product.applications.map((a) => `<li>${a}</li>`).join("")}</ul></section>
+        <section id="overview"><h2>Research overview</h2><p>${product.name} is presented for lawful in-vitro laboratory research with clear variant selection, market-aware pricing, and batch-document visibility.</p><ul>${product.applications.map((a) => `<li>${a}</li>`).join("")}</ul></section>
         <section id="specs"><h2>Product specifications</h2>${specTable(product.specs, `${product.name} specifications`)}</section>
         <section id="protocol"><h2>Reconstitution planning</h2><p>Use the calculator to model vial amount, diluent volume, and desired research amount. Follow your validated laboratory SOP.</p><a data-link class="btn secondary" href="/peptide-calculator">Open calculator</a></section>
         <section id="faq"><h2>FAQ</h2>${accordion(product.faqs)}</section>
       </article></div>
       <section class="section related-section">${sectionHeading("Related products", "Complete the workflow")}${productGrid(related)}</section>
     </section>
-    <div class="sticky-atc"><span>${product.name}</span><strong>${formatMoney(selected.price)}</strong><button class="btn primary small" data-add="${product.slug}" data-sku="${selected.sku}" data-qty="${qty}">Add</button></div>
+    <div class="sticky-atc"><span>${product.name}</span><strong>${marketPrice(selectedPrice)}</strong><button class="btn primary small" data-add="${product.slug}" data-sku="${selected.sku}" data-qty="${qty}">Add</button></div>
   `;
 }
 
@@ -355,21 +545,38 @@ function certificationsPage() {
   const params = new URLSearchParams(location.search);
   const filter = params.get("filter") || "All";
   const q = params.get("q") || "";
-  const items = products.filter((product) => {
-    const type = product.category === "Bundles" ? "Blends" : product.category === "Sprays" || product.category === "Oral Peptides" ? "Topicals" : "Singles";
-    return (filter === "All" || filter === type) && product.name.toLowerCase().includes(q.toLowerCase());
-  });
-  return `<section class="section container">${pageHero("Lab Reports", "Product Certificates of Analysis", "Searchable COA library with current and archived report links for every product and variant.")}
-    <div class="catalog-toolbar"><label>Search certificates<input data-coa-search value="${esc(q)}" placeholder="Search product name"></label></div>
+  const items = filteredCoaItems(filter, q);
+  return `<section class="section container">${pageHero("Lab Reports", "Product Certificates of Analysis", "Search available COA, heavy metals, and endotoxin PDFs by product and variant.")}
+    <div class="catalog-toolbar"><label>Search certificates<input data-coa-search value="${esc(q)}" placeholder="Search product name, variant, or report type"></label></div>
     <div class="category-tabs">${["All", "Singles", "Blends", "Topicals"].map((tab) => `<button data-coa-filter="${tab}" class="${filter === tab ? "active" : ""}">${tab}</button>`).join("")}</div>
-    <p class="result-count" aria-live="polite">${items.length} certificate cards found.</p>
-    <div class="coa-grid">${items.map(coaCard).join("")}</div>
-    <section class="section feature-grid">${feature("file", "HPLC report slot", "Ready for your real purity and identity documents.")}${feature("check", "Mass spec slot", "Document links are attached per variant.")}${feature("shield", "Archive support", "Older reports are shown under expandable cards.")}${feature("badge", "Guarantee copy", "Use only truthful claims reviewed by your team.")}</section>
+    <p class="result-count" data-coa-count aria-live="polite">${items.length} certificate cards found.</p>
+    <div class="coa-grid" data-coa-results>${items.map(coaCard).join("")}</div>
+    <section class="section feature-grid">${feature("file", "COA PDFs", "Current purity and identity documents are linked when uploaded.")}${feature("check", "Heavy metals", "Contaminant reports appear beside the matching variant when available.")}${feature("shield", "Endotoxin reports", "Endotoxin files are attached without fabricating missing links.")}${feature("badge", "Research-use copy", "Certificate access is paired with clear research-only language.")}</section>
   </section>`;
 }
 
+function filteredCoaItems(filter, query) {
+  const q = query.trim().toLowerCase();
+  return products.filter((product) => {
+    const type = product.category === "Bundles" ? "Blends" : product.category === "Sprays" || product.category === "Oral Peptides" ? "Topicals" : "Singles";
+    const reportText = product.variants.map((variant) => `${variant.label} ${Object.values(variant.reports).join(" ")}`).join(" ");
+    return (filter === "All" || filter === type) && `${product.name} ${product.group} ${reportText}`.toLowerCase().includes(q);
+  });
+}
+
+function updateCoaResults() {
+  const params = new URLSearchParams(location.search);
+  const filter = params.get("filter") || "All";
+  const q = params.get("q") || "";
+  const items = filteredCoaItems(filter, q);
+  const resultTarget = document.querySelector("[data-coa-results]");
+  const countTarget = document.querySelector("[data-coa-count]");
+  if (resultTarget) resultTarget.innerHTML = items.map(coaCard).join("");
+  if (countTarget) countTarget.textContent = `${items.length} certificate cards found.`;
+  history.replaceState({}, "", browserPath(`/certifications?${params.toString()}`));
+}
+
 function calculatorPage() {
-  const r = calculatePeptide(state.calculator);
   return `<section class="section container">${pageHero("Tool", "Peptide reconstitution calculator", "Live concentration and syringe-unit math for research planning.")}
     <div class="calculator-layout">
       <form class="calculator-card" data-calculator>
@@ -377,65 +584,101 @@ function calculatorPage() {
         <label>BAC water (mL)<input name="waterMl" type="number" min="0" step="0.1" value="${state.calculator.waterMl}"></label>
         <div class="quick-buttons">${[1, 1.5, 2, 2.5, 3, 5].map((n) => `<button type="button" data-water="${n}">${n}mL</button>`).join("")}</div>
         <label>Desired research amount (mg)<input name="doseMg" type="number" min="0" step="0.01" value="${state.calculator.doseMg}"></label>
-        ${r.error ? `<p class="field-error">${r.error}</p>` : ""}
+        <p class="field-error" data-calculator-error></p>
       </form>
-      <section class="results-card" aria-live="polite"><h2>Results</h2>${resultRow("Concentration", r.error ? "--" : `${r.concentrationMgMl} mg/mL`)}${resultRow("Draw to", r.error ? "--" : `${r.syringeUnits} units`)}${resultRow("Dose volume", r.error ? "--" : `${r.doseVolumeMl} mL`)}${resultRow("Doses per vial", r.error ? "--" : `${r.dosesPerVial}`)}<div class="syringe-meter" style="--fill:${Math.min(100, r.syringeUnits || 0)}%"><span></span></div></section>
+      <section class="results-card" data-calculator-results aria-live="polite">${calculatorResults()}</section>
     </div>
-    <section class="section split-section"><article class="video-placeholder"><span class="play-icon">${icon("arrow")}</span><h2>Watch and learn</h2><p>Replace this placeholder with your captioned tutorial video embed.</p></article><article class="prose"><h2>Understanding units</h2><p>On a 1mL syringe, one unit equals 0.01mL. The calculator converts dose volume into units by multiplying milliliters by 100.</p><p>Always follow validated lab procedures and reviewed product-specific instructions.</p></article></section>
+    <section class="section split-section"><article class="video-placeholder"><span class="play-icon">${icon("calc")}</span><h2>Planning aid</h2><p>Use the calculator alongside validated laboratory SOPs and product-specific instructions.</p></article><article class="prose"><h2>Understanding units</h2><p>On a 1mL syringe, one unit equals 0.01mL. The calculator converts dose volume into units by multiplying milliliters by 100.</p><p>Always follow validated lab procedures and reviewed product-specific instructions.</p></article></section>
     <section class="section">${sectionHeading("Supplies", "Calculator cross-sells")}${productGrid(products.filter((p) => ["bacteriostatic-water", "1ml-laboratory-syringes"].includes(p.slug)))}</section>
   </section>`;
 }
 
+function calculatorResults() {
+  const r = calculatePeptide(state.calculator);
+  return `<h2>Results</h2>${resultRow("Concentration", r.error ? "--" : `${r.concentrationMgMl} mg/mL`)}${resultRow("Draw to", r.error ? "--" : `${r.syringeUnits} units`)}${resultRow("Dose volume", r.error ? "--" : `${r.doseVolumeMl} mL`)}${resultRow("Doses per vial", r.error ? "--" : `${r.dosesPerVial}`)}<div class="syringe-meter" style="--fill:${Math.min(100, r.syringeUnits || 0)}%"><span></span></div>`;
+}
+
+function updateCalculatorResults() {
+  const r = calculatePeptide(state.calculator);
+  const results = document.querySelector("[data-calculator-results]");
+  const error = document.querySelector("[data-calculator-error]");
+  if (results) results.innerHTML = calculatorResults();
+  if (error) error.textContent = r.error || "";
+}
+
 function blogPage() {
-  return `<section class="section container">${pageHero("Blog", "Research guides", "Article index with category chips, author-ready metadata, pagination styling, and related-product paths.")}${articleGrid(blogPosts)}<nav class="pagination" aria-label="Blog pagination"><a aria-current="page" href="/blog">1</a><a href="/blog?page=2">2</a><span>...</span><a href="/blog?page=27">27</a></nav></section>`;
+  return `<section class="section container">${pageHero("Blog", "Research guides", "Education for lawful laboratory research workflows.")}${articleGrid(blogPosts)}</section>`;
 }
 
 function articlePage(slug) {
   const post = blogPosts.find((item) => item.slug === slug);
   if (!post) return notFoundPage();
-  return `<article class="section container article-page"><nav class="breadcrumbs"><a data-link href="/">Home</a><span>/</span><a data-link href="/blog">Blog</a><span>/</span><span>${post.title}</span></nav><span class="eyebrow">${post.category}</span><h1>${post.title}</h1><p class="article-meta">${post.date} - ${post.readTime} - Editorial placeholder</p><div class="article-hero">${icon("book-large")}</div><div class="prose">${post.body.map((p) => `<p>${p}</p>`).join("")}<div class="inline-cta"><h2>Related product workflow</h2><p>Article CTAs can link to products, calculator, or lab results.</p><a data-link class="btn primary" href="/shop">Browse catalog</a></div></div></article>`;
+  return `<article class="section container article-page"><nav class="breadcrumbs"><a data-link href="/">Home</a><span>/</span><a data-link href="/blog">Blog</a><span>/</span><span>${post.title}</span></nav><span class="eyebrow">${post.category}</span><h1>${post.title}</h1><p class="article-meta">${post.date} - ${post.readTime} - MAXXFIT LABS editorial</p><div class="article-hero">${icon("book-large")}</div><div class="prose">${post.body.map((p) => `<p>${p}</p>`).join("")}<div class="inline-cta"><h2>Continue researching</h2><p>Review available reports, compare variants, or use the calculator for laboratory planning.</p><a data-link class="btn primary" href="/shop">Browse catalog</a></div></div></article>`;
 }
 
 function contactPage() {
-  return `<section class="section container">${pageHero("Contact", "Get in touch", "Support hub with chat, phone, email, hours, and a fallback contact form.")}
-    <div class="contact-grid">${contactCard("chat", "Live chat", "Connect your chat widget", "Open live chat")}${contactCard("phone", "Phone", "+1 (888) 000-0000", "Call support")}${contactCard("mail", "Email", "support@example.com", "Send email")}${contactCard("map", "Hours", "9AM - 10PM EST daily", "View details")}</div>
+  return `<section class="section container">${pageHero("Contact", "Get in touch", "Support for research orders, lab reports, checkout, and delivery questions.")}
+    <div class="contact-grid">${contactCard("chat", "WhatsApp", "Message support", "Open WhatsApp", CONTACT.whatsappHref, true)}${contactCard("phone", "Phone", CONTACT.phoneDisplay, "Email for phone support", `mailto:${CONTACT.email}`)}${contactCard("mail", "Email", CONTACT.email, "Send email", `mailto:${CONTACT.email}`)}${contactCard("map", "Market", market().label, "View details", "/payments")}</div>
     ${formPanel("Send a message", "Message saved locally.", `<label>Name<input required></label><label>Email<input required type="email"></label><label>Order number optional<input></label><label>Message<textarea required rows="5"></textarea></label><button class="btn primary" type="submit">Send message</button>`)}
   </section>`;
 }
 
 function trackingPage() {
-  return `<section class="section container narrow-page">${pageHero("Order Tracking", "Track your order", "Demo lookup: RS-1042 and lab@example.com.")}
-    <form class="tracking-card" data-tracking><label>Order number<input name="order" required placeholder="RS-1042"></label><label>Billing email<input name="email" type="email" required placeholder="lab@example.com"></label><button class="btn primary" type="submit">Track my order</button></form><div data-tracking-result></div>
+  return `<section class="section container narrow-page">${pageHero("Order Tracking", "Track your order", "Enter the order number and billing email from your confirmation.")}
+    <form class="tracking-card" data-tracking><label>Order number<input name="order" required placeholder="${market().key === "sea" ? "ID-2048" : "MX-1042"}"></label><label>Billing email<input name="email" type="email" required placeholder="you@example.com"></label><button class="btn primary" type="submit">Track my order</button></form><div data-tracking-result></div>
   </section>`;
 }
 
 function verifyPage() {
-  return `<section class="section container narrow-page">${pageHero("Verification", "Verify order or batch", "Anti-counterfeit verification flow ready for your real backend.")}
+  return `<section class="section container narrow-page">${pageHero("Verification", "Verify order or batch", "Check an order number or batch identifier against MAXXFIT LABS records.")}
     <form class="tracking-card" data-verify><label>Order number or batch ID<input name="code" required placeholder="BATCH-2026-RD"></label><button class="btn primary" type="submit">Verify</button></form><div data-verify-result></div>
   </section>`;
 }
 
 function affiliatePage() {
-  return `<section class="section container">${pageHero("Affiliate Program", "Apply to partner", "Full registration form with validation and a post-submit review state.")}
-    <div class="split-section"><div class="prose"><h2>Program benefits placeholder</h2><ul><li>Commission tracking language ready for your affiliate system.</li><li>Discount-code and link fields can be connected after approval.</li><li>No creator names, images, or claims are fabricated.</li></ul></div>${formPanel("Affiliate application", "Application saved locally.", `<label>Name<input required></label><label>Email<input required type="email"></label><label>Social handles<input required></label><label>Audience size<select required><option value="">Choose one</option><option>Under 5,000</option><option>5,000 - 50,000</option><option>50,000+</option></select></label><label class="checkbox-label"><input required type="checkbox"> I agree to program terms.</label><button class="btn primary" type="submit">Submit application</button>`)}</div>
+  return `<section class="section container">${pageHero("Affiliate Program", "Apply to partner", "Partner with MAXXFIT LABS through compliant research-use education.")}
+    <div class="split-section"><div class="prose"><h2>Program benefits</h2><ul><li>Research-use messaging standards.</li><li>Discount-code and link support after approval.</li><li>Manual review before any partner claim is published.</li></ul></div>${formPanel("Affiliate application", "Application saved locally.", `<label>Name<input required></label><label>Email<input required type="email"></label><label>Social handles<input required></label><label>Audience size<select required><option value="">Choose one</option><option>Under 5,000</option><option>5,000 - 50,000</option><option>50,000+</option></select></label><label class="checkbox-label"><input required type="checkbox"> I agree to program terms.</label><button class="btn primary" type="submit">Submit application</button>`)}</div>
   </section>`;
 }
 
 function aboutPage() {
-  return `<section class="section container">${pageHero("About", "Quality process and brand story shell", "Replace this original placeholder story with your real company name, facility claims, lab partners, and advisor credentials.")}
-    <div class="process-grid">${feature("flask", "Source", "Add your real sourcing and qualification process.")}${feature("test", "Test", "Connect batch-specific COAs and contaminant reports.")}${feature("box", "Pack", "Describe verified packaging and fulfillment SOPs.")}${feature("truck", "Ship", "Publish true fulfillment windows and carrier options.")}</div>
+  return `<section class="section container">${pageHero("About", "Quality process and brand story", "MAXXFIT LABS is a report-forward research storefront for lawful laboratory workflows.")}
+    <div class="process-grid">${feature("flask", "Source", "Qualified sourcing for research-use materials.")}${feature("test", "Test", "Available COA and contaminant reports are linked by product variant.")}${feature("box", "Pack", "Clear product formats, variants, and companion supplies.")}${feature("truck", "Ship", market().shipping)}</div>
   </section>`;
 }
 
 function paymentsPage() {
-  return `<section class="section container narrow-page">${pageHero("Payments", "Accepted payment methods", "Dedicated payment explainer page to reduce checkout hesitation.")}
-    <div class="payment-methods">${["Credit cards", "Apple Pay", "Klarna", "Bank transfer", "Invoice terms"].map((method) => `<article>${icon("card")}<h2>${method}</h2><p>Placeholder. Show only methods your processor actually supports.</p></article>`).join("")}</div>
+  return `<section class="section container narrow-page">${pageHero("Payments", "Market payment options", "Checkout details adapt for US and Indonesia / Southeast Asia visitors.")}
+    <div class="payment-methods">${[
+      ["US online checkout", "US visitors use the online checkout path. COD is not offered for this market."],
+      ["No US COD", "Cash on delivery is intentionally disabled for the US market."],
+      ["ID / SEA COD", "Collect phone and WhatsApp details, then confirm before dispatch."],
+      ["IDR display", "Indonesia / Southeast Asia pricing displays in IDR with configurable rates."]
+    ].map(([title, text]) => `<article>${icon("card")}<h2>${title}</h2><p>${text}</p></article>`).join("")}</div>
+  </section>`;
+}
+
+function adminPage() {
+  const rows = products.flatMap((product) =>
+    product.variants.map((variant) => ({ product, variant }))
+  );
+  return `<section class="section container admin-page">${pageHero("CMS", "Catalog admin console", "Direct-access local product and price editor for catalog maintenance.")}
+    <div class="admin-summary">
+      ${feature("badge", "Local edits", "Product variants and prices can be adjusted locally for review.")}
+      ${feature("shield", "Catalog control", "Variant, price, and report-link data stay organized in one source file.")}
+      ${feature("card", "Market pricing", "US and Indonesia / Southeast Asia displays use the active market settings.")}
+      ${feature("phone", "COD fields", "Indonesia / Southeast Asia orders include confirmation-before-dispatch fields.")}
+    </div>
+    <div class="table-wrap admin-table"><table><caption>Editable local catalog pricing</caption><thead><tr><th scope="col">Product</th><th scope="col">Variant</th><th scope="col">SKU</th><th scope="col">Base USD</th></tr></thead><tbody>${rows
+      .map(({ product, variant }) => `<tr><td>${product.name}</td><td>${variant.label}</td><td>${variant.sku}</td><td><input data-price-sku="${variant.sku}" type="number" min="0.01" step="0.01" value="${getVariantPrice(variant)}" aria-label="Price for ${product.name} ${variant.label}"></td></tr>`)
+      .join("")}</tbody></table></div>
+    <div class="button-row"><button class="btn secondary" type="button" data-reset-prices>Reset local prices</button><a data-link class="btn primary" href="/shop">Review storefront</a></div>
   </section>`;
 }
 
 function legalPage(path) {
   const titles = { "/terms": "Terms and Conditions", "/privacy": "Privacy Policy", "/shipping-returns": "Shipping and Returns" };
-  return `<section class="section container legal-page">${pageHero("Legal", titles[path], "Readable legal prose shell with anchored sections.")}<div class="prose"><h2>Research-use terms</h2><p>This placeholder page must be reviewed by qualified counsel before production.</p><h2>Customer responsibilities</h2><p>Products are represented for lawful in-vitro research workflows only. Replace all jurisdiction-specific content with approved language.</p><h2>Data and operations</h2><p>Add real privacy, shipping, refund, tax, chargeback, and payment-processing policies before accepting live orders.</p></div></section>`;
+  return `<section class="section container legal-page">${pageHero("Legal", titles[path], "Research-use policies, privacy notes, shipping expectations, and support terms.")}<div class="prose"><h2>Research-use terms</h2><p>MAXXFIT LABS products are represented for lawful in-vitro laboratory research only and are not for human or animal consumption.</p><h2>Customer responsibilities</h2><p>Customers are responsible for complying with applicable laws, institutional requirements, and validated laboratory SOPs.</p><h2>Data and operations</h2><p>Orders, support requests, COD confirmation details, and tracking information are handled for fulfillment and customer service purposes.</p></div></section>`;
 }
 
 function cartPage() {
@@ -443,21 +686,35 @@ function cartPage() {
 }
 
 function checkoutPage() {
-  if (!state.cart.length) return `<section class="section container narrow-page">${pageHero("Checkout", "Your cart is empty", "Add items before placing a demo order.")}<a data-link class="btn primary" href="/shop">Shop now</a></section>`;
-  return `<section class="section container checkout-page"><div class="checkout-grid"><form class="checkout-form" data-checkout><h1>Checkout</h1><div class="step-tabs">${[1, 2, 3].map((step) => `<button type="button" data-step="${step}" class="${state.checkoutStep === step ? "active" : ""}">${["Contact", "Shipping", "Payment"][step - 1]}</button>`).join("")}</div>${checkoutStepFields()} </form>${cartContents()}</div><button class="text-link" data-nav-cart type="button">Return to cart</button></section>`;
+  if (!state.cart.length) return `<section class="section container narrow-page">${pageHero("Checkout", "Your cart is empty", "Add items before placing an order.")}<a data-link class="btn primary" href="/shop">Shop now</a></section>`;
+  const labels = ["Contact", "Delivery", market().checkoutLabel];
+  return `<section class="section container checkout-page"><div class="checkout-grid"><form class="checkout-form" data-checkout><h1>${market().label} checkout</h1><div class="checkout-market-note">${regionSwitcher()}<p>${market().orderMode}</p></div><div class="step-tabs">${[1, 2, 3].map((step) => `<button type="button" data-step="${step}" class="${state.checkoutStep === step ? "active" : ""}" ${step > state.checkoutMaxStep ? "disabled" : ""}>${labels[step - 1]}</button>`).join("")}</div>${checkoutStepFields()} </form>${cartContents()}</div><button class="text-link" data-nav-cart type="button">Return to cart</button></section>`;
 }
 
 function checkoutStepFields() {
-  if (state.checkoutStep === 1) return `<label>Email<input required type="email" autocomplete="email"></label><label>Phone<input required type="tel" autocomplete="tel"></label><button class="btn primary" type="button" data-step="2">Continue to shipping</button>`;
-  if (state.checkoutStep === 2) return `<label>Full name<input required autocomplete="name"></label><label>Address<input required autocomplete="street-address"></label><label>City<input required autocomplete="address-level2"></label><button class="btn primary" type="button" data-step="3">Continue to payment</button>`;
-  return `<label>Demo card<input required inputmode="numeric" placeholder="4242 4242 4242 4242"></label><label class="checkbox-label"><input required type="checkbox"> I confirm this is a demo checkout.</label><button class="btn primary" type="submit">Place demo order</button>`;
+  const active = market();
+  const data = state.checkoutData;
+  if (state.checkoutStep === 1) return `<label>Email<input name="email" required type="email" autocomplete="email" value="${esc(data.email || "")}"></label><label>Phone<input name="phone" required type="tel" autocomplete="tel" value="${esc(data.phone || "")}"></label>${active.key === "sea" ? `<label>WhatsApp number<input name="whatsapp" required type="tel" autocomplete="tel" placeholder="+62" value="${esc(data.whatsapp || "")}"></label>` : ""}<button class="btn primary" type="button" data-next-step="2">Continue to delivery</button>`;
+  if (state.checkoutStep === 2) return `<label>Full name<input name="name" required autocomplete="name" value="${esc(data.name || "")}"></label><label>Address<input name="address" required autocomplete="street-address" value="${esc(data.address || "")}"></label><label>City<input name="city" required autocomplete="address-level2" value="${esc(data.city || "")}"></label><label>Country / Region<input name="country" required value="${esc(data.country || (active.key === "sea" ? "Indonesia / Southeast Asia" : "United States"))}"></label><button class="btn primary" type="button" data-next-step="3">Continue to ${active.checkoutLabel.toLowerCase()}</button>`;
+  if (active.key === "sea") return `<div class="status-panel compact">${icon("phone")}<p>COD orders require call or WhatsApp confirmation before dispatch.</p></div><label class="checkbox-label"><input required type="checkbox"> I understand dispatch happens only after confirmation.</label><button class="btn primary" type="submit">Request COD order</button>`;
+  return `<div class="status-panel compact">${icon("card")}<p>Review your research order before continuing to the online payment handoff.</p></div><label class="checkbox-label"><input required type="checkbox"> I confirm this order is for lawful in-vitro research use only.</label><button class="btn primary" type="submit">Place order</button>`;
+}
+
+function orderConfirmationPage() {
+  const params = new URLSearchParams(location.search);
+  const orderId = params.get("order");
+  const order = allOrders().find((item) => item.order === orderId) || state.lastOrder;
+  if (!order) return `<section class="section container narrow-page">${pageHero("Order", "Order not found", "Return to tracking to search by order number and billing email.")}<a data-link class="btn primary" href="/order-tracking">Open tracking</a></section>`;
+  return `<section class="section container narrow-page">${pageHero("Order Confirmation", `Order ${order.order} received`, order.status)}
+    <div class="status-panel">${icon("check")}<h2>${order.status}</h2><p>Confirmation email: ${esc(order.email)}. ${order.eta ? `Estimated update: ${esc(order.eta)}.` : ""}</p><ol class="timeline">${order.steps.map((step) => `<li>${esc(step)}</li>`).join("")}</ol><a data-link class="btn primary" href="/order-tracking">Track order</a></div>
+  </section>`;
 }
 
 function accountPage() {
   if (state.account) {
-    return `<section class="section container narrow-page">${pageHero("Account", "Customer account", "Login, registration, order list, addresses, and profile shell.")}<div class="account-panel"><h2>Dashboard</h2><p>Welcome back. This state is stored locally for demo purposes.</p><div class="account-grid"><article><h3>Recent orders</h3><p>RS-1042 - In transit</p></article><article><h3>Addresses</h3><p>No saved addresses.</p></article><article><h3>Account details</h3><p>Profile editing shell.</p></article></div><button class="btn secondary" data-logout>Sign out</button></div></section>`;
+    return `<section class="section container narrow-page">${pageHero("Account", "Customer account", "Review order status, saved contact details, and support links.")}<div class="account-panel"><h2>Dashboard</h2><p>Welcome back. This state is stored locally on this device.</p><div class="account-grid"><article><h3>Recent orders</h3><p>Open order tracking for current details.</p></article><article><h3>Addresses</h3><p>No saved addresses.</p></article><article><h3>Support</h3><p><a data-link href="/contact">Contact support</a></p></article></div><button class="btn secondary" data-logout>Sign out</button></div></section>`;
   }
-  return `<section class="section container narrow-page">${pageHero("Account", "Customer account", "Login, registration, order list, addresses, and profile shell.")}<form class="tracking-card" data-account><div class="step-tabs"><button type="button" class="active">Login</button><button type="button">Register</button></div><label>Email<input required type="email"></label><label>Password<input required type="password"></label><button class="btn primary" type="submit">Continue</button></form></section>`;
+  return `<section class="section container narrow-page">${pageHero("Account", "Customer account", "Access saved account details on this device.")}<form class="tracking-card" data-account><div class="step-tabs"><button type="button" class="active">Login</button><button type="button">Register</button></div><label>Email<input required type="email"></label><label>Password<input required type="password"></label><button class="btn primary" type="submit">Continue</button></form></section>`;
 }
 
 function notFoundPage() {
@@ -469,11 +726,22 @@ function bindGlobal() {
     localStorage.setItem("promo-dismissed", "1");
     render();
   });
+  document.querySelectorAll("[data-market]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.market = button.dataset.market;
+      localStorage.setItem("maxxfit-market", state.market);
+      showToast(`${market().label} selected.`);
+    });
+  });
   document.querySelectorAll("[data-open-search]").forEach((el) => el.addEventListener("click", () => openOverlay("search")));
   document.querySelectorAll("[data-open-cart]").forEach((el) => el.addEventListener("click", () => openOverlay("cart")));
   document.querySelector("[data-open-drawer]")?.addEventListener("click", () => openOverlay("drawer"));
-  document.querySelectorAll("[data-close-overlay]").forEach((el) => el.addEventListener("click", closeOverlays));
-  document.querySelector(".scrim aside, .search-panel")?.addEventListener("click", (event) => event.stopPropagation());
+  document.querySelectorAll("[data-close-overlay]").forEach((el) =>
+    el.addEventListener("click", (event) => {
+      if (event.target === el || event.target.closest("button[data-close-overlay]")) closeOverlays();
+    })
+  );
+  document.querySelectorAll(".scrim aside, .search-panel").forEach((panel) => panel.addEventListener("click", (event) => event.stopPropagation()));
   document.querySelector("[data-toast-close]")?.addEventListener("click", () => {
     state.toast = "";
     render();
@@ -509,7 +777,7 @@ function bindGlobal() {
     event.preventDefault();
     const code = new FormData(event.currentTarget).get("promo")?.toString().trim() || "";
     localStorage.setItem("promo-code", code);
-    showToast(code.toUpperCase() === "RESEARCH10" ? "Promo code applied." : "Use RESEARCH10 for the demo discount.");
+    showToast(code.toUpperCase() === "RESEARCH10" ? "Promo code applied." : "Use RESEARCH10 for the test discount.");
   });
 }
 
@@ -518,7 +786,7 @@ function updateSearchResults(query) {
   if (!target) return;
   const q = query.trim().toLowerCase();
   if (!q) {
-    target.innerHTML = "<p>Start typing to search the catalog, guides, and tools.</p>";
+    target.innerHTML = "<p>Start typing to search the catalog, guides, reports, and market tools.</p>";
     return;
   }
   const productMatches = products.filter((product) => `${product.name} ${product.group}`.toLowerCase().includes(q)).slice(0, 5);
@@ -548,19 +816,19 @@ function bindRoute() {
   const shopQuery = document.querySelector("[data-shop-query]");
   shopQuery?.addEventListener("input", () => {
     state.shopQuery = shopQuery.value;
-    render();
+    updateShopResults();
   });
   const shopSort = document.querySelector("[data-shop-sort]");
   if (shopSort) {
     shopSort.value = state.shopSort;
     shopSort.addEventListener("change", () => {
       state.shopSort = shopSort.value;
-      render();
+      updateShopResults();
     });
   }
   document.querySelector("[data-shop-stock]")?.addEventListener("change", (event) => {
     state.shopStock = event.target.checked;
-    render();
+    updateShopResults();
   });
   document.querySelectorAll("[data-variant]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -591,8 +859,10 @@ function bindRoute() {
   });
   document.querySelector("[data-coa-search]")?.addEventListener("input", (event) => {
     const params = new URLSearchParams(location.search);
-    params.set("q", event.target.value);
-    navigate(`/certifications?${params.toString()}`);
+    if (event.target.value.trim()) params.set("q", event.target.value);
+    else params.delete("q");
+    history.replaceState({}, "", browserPath(`/certifications?${params.toString()}`));
+    updateCoaResults();
   });
   document.querySelectorAll("[data-coa-filter]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -608,12 +878,14 @@ function bindRoute() {
       waterMl: Number(form.elements.waterMl.value),
       doseMg: Number(form.elements.doseMg.value)
     };
-    render();
+    updateCalculatorResults();
   });
   document.querySelectorAll("[data-water]").forEach((button) => {
     button.addEventListener("click", () => {
       state.calculator.waterMl = Number(button.dataset.water);
-      render();
+      const form = document.querySelector("[data-calculator]");
+      if (form?.elements.waterMl) form.elements.waterMl.value = state.calculator.waterMl;
+      updateCalculatorResults();
     });
   });
   document.querySelectorAll("[data-local-form]").forEach((form) => {
@@ -627,9 +899,9 @@ function bindRoute() {
     const form = event.currentTarget;
     const order = form.elements.order.value;
     const email = form.elements.email.value;
-    const found = sampleOrders.find((item) => item.order.toLowerCase() === order.toLowerCase() && item.email.toLowerCase() === email.toLowerCase());
+    const found = allOrders().find((item) => item.order.toLowerCase() === order.toLowerCase() && item.email.toLowerCase() === email.toLowerCase());
     document.querySelector("[data-tracking-result]").innerHTML = found
-      ? `<section class="status-panel"><h2>${found.status}</h2><p>Carrier: ${found.carrier}. Estimated delivery: ${found.eta}.</p><ol class="timeline">${found.steps.map((s) => `<li>${s}</li>`).join("")}</ol></section>`
+      ? `<section class="status-panel"><h2>${esc(found.status)}</h2><p>Carrier: ${esc(found.carrier)}. Estimated delivery: ${esc(found.eta)}.</p><ol class="timeline">${found.steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol></section>`
       : `<p class="field-error">Order not found. Check the order number and billing email.</p>`;
   });
   document.querySelector("[data-verify]")?.addEventListener("submit", (event) => {
@@ -637,31 +909,134 @@ function bindRoute() {
     const code = new FormData(event.currentTarget).get("code");
     document.querySelector("[data-verify-result]").innerHTML = `<section class="status-panel">${icon("check")}<h2>Verification flow reached</h2><p>${esc(code)} is ready to be checked against a real order or batch database.</p></section>`;
   });
+  document.querySelectorAll("[data-price-sku]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const price = Number(input.value);
+      if (Number.isFinite(price) && price > 0) {
+        state.priceOverrides[input.dataset.priceSku] = price;
+        savePriceOverrides();
+        showToast("Admin price updated.");
+      }
+    });
+  });
+  document.querySelector("[data-reset-prices]")?.addEventListener("click", () => {
+    state.priceOverrides = {};
+    savePriceOverrides();
+    showToast("Local price overrides reset.");
+  });
   document.querySelectorAll("[data-step]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.checkoutStep = Number(button.dataset.step);
+      const step = Number(button.dataset.step);
+      if (step <= state.checkoutMaxStep) {
+        persistCheckoutData();
+        state.checkoutStep = step;
+        render();
+      }
+    });
+  });
+  document.querySelectorAll("[data-next-step]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const form = document.querySelector("[data-checkout]");
+      if (!form) return;
+      persistCheckoutData();
+      if (!validateVisibleCheckoutFields(form)) return;
+      const step = Number(button.dataset.nextStep);
+      state.checkoutStep = step;
+      state.checkoutMaxStep = Math.max(state.checkoutMaxStep, step);
+      localStorage.setItem("maxxfit-checkout-max-step", String(state.checkoutMaxStep));
       render();
     });
   });
+  document.querySelector("[data-checkout]")?.addEventListener("input", persistCheckoutData);
   document.querySelector("[data-checkout]")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    const orderId = `RS-${Math.floor(1000 + Math.random() * 9000)}`;
+    persistCheckoutData();
+    if (!event.currentTarget.reportValidity()) return;
+    const order = createOrder();
+    saveOrder(order);
+    state.lastOrder = order;
+    localStorage.setItem("maxxfit-last-order", JSON.stringify(order));
     state.cart = [];
+    state.checkoutData = {};
+    state.checkoutStep = 1;
+    state.checkoutMaxStep = 1;
     saveCart();
-    root.innerHTML = `${header(true)}<main class="section container narrow-page"><div class="status-panel">${icon("check")}<h1>Order created locally</h1><p>Demo order ${orderId} is ready for payment integration and fulfillment routing.</p><a data-link class="btn primary" href="/order-tracking">Track order</a></div></main>`;
+    localStorage.removeItem("maxxfit-checkout-draft");
+    localStorage.setItem("maxxfit-checkout-max-step", "1");
+    navigate(`/order-confirmation?order=${encodeURIComponent(order.order)}`);
   });
   document.querySelector("[data-nav-cart]")?.addEventListener("click", () => navigate("/cart"));
   document.querySelector("[data-account]")?.addEventListener("submit", (event) => {
     event.preventDefault();
-    localStorage.setItem("demo-account", "1");
+    localStorage.setItem("maxxfit-account", "1");
     state.account = true;
     render();
   });
   document.querySelector("[data-logout]")?.addEventListener("click", () => {
-    localStorage.removeItem("demo-account");
+    localStorage.removeItem("maxxfit-account");
     state.account = false;
     render();
   });
+}
+
+function persistCheckoutData() {
+  const form = document.querySelector("[data-checkout]");
+  if (!form) return;
+  const data = { ...state.checkoutData };
+  new FormData(form).forEach((value, key) => {
+    if (key) data[key] = value.toString();
+  });
+  state.checkoutData = data;
+  localStorage.setItem("maxxfit-checkout-draft", JSON.stringify(data));
+}
+
+function validateVisibleCheckoutFields(form) {
+  const fields = [...form.querySelectorAll("input, select, textarea")].filter((field) => field.offsetParent !== null && field.required);
+  const invalid = fields.find((field) => !field.checkValidity());
+  if (invalid) {
+    invalid.reportValidity();
+    invalid.focus();
+    return false;
+  }
+  return true;
+}
+
+function createOrder() {
+  const active = market();
+  const prefix = active.key === "sea" ? "ID" : "MX";
+  const orderId = `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const totals = cartTotals();
+  const status = active.key === "sea" ? "COD confirmation pending" : "Order received";
+  const carrier = active.key === "sea" ? "Local courier" : "UPS or express courier";
+  const eta = active.key === "sea" ? "Confirmed after WhatsApp call" : "Updated after fulfillment review";
+  const steps = active.key === "sea"
+    ? ["Order received", "Phone or WhatsApp confirmation required", "Dispatch held until confirmed"]
+    : ["Order received", "Research-use confirmation recorded", "Payment handoff pending", "Fulfillment review pending"];
+  return {
+    order: orderId,
+    email: state.checkoutData.email || "",
+    status,
+    carrier,
+    eta,
+    steps,
+    market: active.key,
+    total: totals.total,
+    items: state.cart.map((line) => {
+      const item = resolveLine(line);
+      return item ? { name: item.product.name, variant: item.variant.label, qty: line.qty } : null;
+    }).filter(Boolean),
+    createdAt: new Date().toISOString()
+  };
+}
+
+function allOrders() {
+  return [...sampleOrders, ...readJson("maxxfit-orders", [])];
+}
+
+function saveOrder(order) {
+  const orders = readJson("maxxfit-orders", []);
+  orders.unshift(order);
+  localStorage.setItem("maxxfit-orders", JSON.stringify(orders.slice(0, 20)));
 }
 
 function openOverlay(kind) {
@@ -684,9 +1059,8 @@ function addToCart(product, variant, qty) {
   if (existing) existing.qty += qty;
   else state.cart.push({ id, slug: product.slug, sku: variant.sku, qty });
   saveCart();
-  state.toast = `${product.name} added to cart.`;
   state.cartOpen = true;
-  render();
+  showToast(`${product.name} added to cart.`);
 }
 
 function updateCart(id, qty) {
@@ -706,6 +1080,10 @@ function saveCart() {
   localStorage.setItem("research-cart", JSON.stringify(state.cart));
 }
 
+function savePriceOverrides() {
+  localStorage.setItem("maxxfit-price-overrides", JSON.stringify(state.priceOverrides));
+}
+
 function showToast(message) {
   state.toast = message;
   render();
@@ -718,7 +1096,7 @@ function showToast(message) {
 function cartTotals() {
   const subtotal = state.cart.reduce((sum, line) => {
     const item = resolveLine(line);
-    return item ? sum + linePrice(item.variant.price, line.qty) : sum;
+    return item ? sum + linePrice(getVariantPrice(item.variant), line.qty) : sum;
   }, 0);
   const code = localStorage.getItem("promo-code") || "";
   const discount = code.toUpperCase() === "RESEARCH10" ? subtotal * 0.1 : 0;
@@ -730,15 +1108,19 @@ function cartContents(full = false) {
     return `<div class="empty-state">${icon("cart")}<h2>Your cart is empty.</h2><p>Browse the catalog to add products.</p><a data-link class="btn secondary" href="/shop">Shop now</a></div>`;
   }
   const totals = cartTotals();
-  const remaining = freeShippingRemaining(totals.subtotal);
-  return `<div class="${full ? "cart-layout" : "cart-contents"}"><div class="cart-lines">${state.cart.map(cartLine).join("")}</div><aside class="order-summary"><h2>Order summary</h2><div class="progress-label">${remaining > 0 ? `${formatMoney(remaining)} away from free shipping` : "Free shipping unlocked"}</div><div class="progress-bar"><span style="width:${Math.min(100, (totals.subtotal / 200) * 100)}%"></span></div><form class="promo-form" data-apply-promo><label>Promo code<input name="promo" value="${esc(totals.code)}" placeholder="RESEARCH10"></label><button class="btn secondary small" type="submit">Apply</button></form>${summaryRow("Subtotal", formatMoney(totals.subtotal))}${totals.discount ? summaryRow("Discount", `-${formatMoney(totals.discount)}`) : ""}${summaryRow("Estimated shipping", remaining > 0 ? "Calculated later" : "Free")}${summaryRow("Total", formatMoney(totals.total), true)}${full ? `<a data-link class="btn primary full" href="/checkout">Checkout</a>` : ""}</aside></div>`;
+  const active = market();
+  const remaining = active.freeShipThreshold ? freeShippingRemaining(totals.subtotal, active.freeShipThreshold) : 0;
+  const progress = active.freeShipThreshold ? Math.min(100, (totals.subtotal / active.freeShipThreshold) * 100) : 100;
+  const progressLabel = active.freeShipThreshold && remaining > 0 ? `${marketPrice(remaining)} away from US free shipping` : active.shipping;
+  const shippingLabel = active.key === "sea" ? "Quoted after COD confirmation" : remaining > 0 ? "Calculated at checkout" : "Free";
+  return `<div class="${full ? "cart-layout" : "cart-contents"}"><div class="cart-lines">${state.cart.map(cartLine).join("")}</div><aside class="order-summary"><h2>Order summary</h2><div class="progress-label">${progressLabel}</div><div class="progress-bar"><span style="width:${progress}%"></span></div><form class="promo-form" data-apply-promo><label>Promo code<input name="promo" value="${esc(totals.code)}" placeholder="RESEARCH10"></label><button class="btn secondary small" type="submit">Apply</button></form>${summaryRow("Market", active.label)}${summaryRow("Subtotal", marketPrice(totals.subtotal))}${totals.discount ? summaryRow("Discount", `-${marketPrice(totals.discount)}`) : ""}${summaryRow("Estimated shipping", shippingLabel)}${summaryRow("Total", marketPrice(totals.total), true)}${full ? `<a data-link class="btn primary full" href="/checkout">Checkout</a>` : ""}</aside></div>`;
 }
 
 function cartLine(line) {
   const item = resolveLine(line);
   if (!item) return "";
   const { product, variant } = item;
-  return `<article class="cart-line">${productVisual(product)}<div><h3>${product.name}</h3><p>${variant.label} - ${variant.sku}</p><div class="quantity-stepper"><button type="button" data-cart-qty="${line.id}" onclick="this.nextElementSibling.value=Math.max(1,Number(this.nextElementSibling.value)-1);this.nextElementSibling.dispatchEvent(new Event('change'))">${icon("minus")}</button><input data-cart-qty="${line.id}" aria-label="Quantity value" type="number" min="1" value="${line.qty}"><button type="button" data-cart-qty="${line.id}" onclick="this.previousElementSibling.value=Number(this.previousElementSibling.value)+1;this.previousElementSibling.dispatchEvent(new Event('change'))">${icon("plus")}</button></div></div><div class="line-price"><strong>${formatMoney(linePrice(variant.price, line.qty))}</strong><button class="text-link danger" data-remove="${line.id}" type="button">Remove</button></div></article>`;
+  return `<article class="cart-line">${productVisual(product, false, variant)}<div><h3>${product.name}</h3><p>${variant.label}</p><div class="quantity-stepper"><button type="button" data-cart-qty="${line.id}" onclick="this.nextElementSibling.value=Math.max(1,Number(this.nextElementSibling.value)-1);this.nextElementSibling.dispatchEvent(new Event('change'))">${icon("minus")}</button><input data-cart-qty="${line.id}" aria-label="Quantity value" type="number" min="1" value="${line.qty}"><button type="button" data-cart-qty="${line.id}" onclick="this.previousElementSibling.value=Number(this.previousElementSibling.value)+1;this.previousElementSibling.dispatchEvent(new Event('change'))">${icon("plus")}</button></div></div><div class="line-price"><strong>${marketPrice(linePrice(getVariantPrice(variant), line.qty))}</strong><button class="text-link danger" data-remove="${line.id}" type="button">Remove</button></div></article>`;
 }
 
 function resolveLine(line) {
@@ -748,7 +1130,7 @@ function resolveLine(line) {
 }
 
 function searchOverlay() {
-  return `<div class="scrim search-scrim" data-close-overlay role="presentation"><section class="search-panel" role="dialog" aria-modal="true" aria-label="Search"><div class="search-head"><label for="site-search">Search products and guides</label><button class="icon-btn" data-close-overlay aria-label="Close search">${icon("x")}</button></div><input id="site-search" autofocus data-search-input placeholder="Search Retatrutide, COA, calculator..."><div class="search-results" data-search-results><p>Start typing to search the catalog, guides, and tools.</p></div></section></div>`;
+  return `<div class="scrim search-scrim" data-close-overlay role="presentation"><section class="search-panel" role="dialog" aria-modal="true" aria-label="Search"><div class="search-head"><label for="site-search">Search products and guides</label><button class="icon-btn" data-close-overlay aria-label="Close search">${icon("x")}</button></div><input id="site-search" autofocus data-search-input placeholder="Search RETA, COA, COD, calculator..."><div class="search-results" data-search-results><p>Start typing to search the catalog, guides, reports, and market tools.</p></div></section></div>`;
 }
 
 function cartDrawer() {
@@ -760,12 +1142,13 @@ function toast() {
 }
 
 function productCard(product) {
-  const min = Math.min(...product.variants.map((v) => v.price));
-  const max = Math.max(...product.variants.map((v) => v.price));
+  const prices = product.variants.map(getVariantPrice);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
   const isBundle = product.category === "Bundles";
   const badge = isBundle ? "Bundle & Save" : product.badge;
   const action = isBundle ? "View Bundle" : "View Details";
-  return `<article class="product-card"><a data-link href="/product/${product.slug}" class="product-image-link" aria-label="${esc(product.name)} details">${badge ? `<span class="floating-badge">${badge}</span>` : ""}${productVisual(product)}</a><div class="product-card-body"><span class="category-label">${product.group}</span><h3><a data-link href="/product/${product.slug}">${product.name}</a></h3><div class="card-meta"><strong>${min === max ? formatMoney(min) : `${formatMoney(min)} - ${formatMoney(max)}`}</strong>${stockBadge(product.stock)}</div><a data-link class="btn small primary" href="/product/${product.slug}">${action} ${icon("arrow")}</a></div></article>`;
+  return `<article class="product-card"><a data-link href="/product/${product.slug}" class="product-image-link" aria-label="${esc(product.name)} details">${badge ? `<span class="floating-badge">${badge}</span>` : ""}${productVisual(product)}</a><div class="product-card-body"><span class="category-label">${product.group}</span><h3><a data-link href="/product/${product.slug}">${product.name}</a></h3><div class="card-meta"><strong>${min === max ? marketPrice(min) : `${marketPrice(min)} - ${marketPrice(max)}`}</strong>${stockBadge(product.stock)}</div><a data-link class="btn small primary" href="/product/${product.slug}">${action} ${icon("arrow")}</a></div></article>`;
 }
 
 function productGrid(items) {
@@ -773,11 +1156,12 @@ function productGrid(items) {
   return `<div class="product-grid">${items.map(productCard).join("")}</div>`;
 }
 
-function productVisual(product, large = false) {
+function productVisual(product, large = false, variant = null) {
   if (product.image) {
-    return `<div class="product-visual has-image ${large ? "large" : ""}" style="--hue:${product.hue}" aria-hidden="true"><img src="${esc(product.image)}" alt="" loading="${large ? "eager" : "lazy"}"></div>`;
+    return `<div class="product-visual has-image ${large ? "large" : ""}" style="--hue:${product.hue}" aria-hidden="true"><img src="${esc(assetPath(product.image))}" alt="" loading="${large ? "eager" : "lazy"}"></div>`;
   }
-  return `<div class="product-visual ${large ? "large" : ""}" style="--hue:${product.hue}" aria-hidden="true"><div class="vial-shadow"></div><div class="vial"><div class="vial-cap"></div><div class="vial-label"><span>${esc(product.name.split(" ")[0])}</span><small>${esc(product.variants[0].label)}</small></div></div></div>`;
+  const label = variant?.label || product.variants[0].label;
+  return `<div class="product-visual ${large ? "large" : ""}" style="--hue:${product.hue}" aria-hidden="true"><div class="vial-shadow"></div><div class="vial"><div class="vial-cap"></div><div class="vial-label"><span>MAXXFIT LABS</span><strong>${esc(product.name.split(" ")[0])}</strong><small>${esc(label)}</small></div></div></div>`;
 }
 
 function stockBadge(stock) {
@@ -790,15 +1174,29 @@ function quantityStepper(qty) {
 }
 
 function trustMicrocopy() {
-  return `<div class="trust-microcopy"><span>${icon("shield")} Third-party report slots</span><span>${icon("truck")} Same-day shipping copy placeholder</span><span>${icon("box")} Batch-specific paths</span></div>`;
+  return `<div class="trust-microcopy"><span>${icon("shield")} Lab reports linked when available</span><span>${icon("truck")} ${market().shipping}</span><span>${icon("box")} Variant-specific ordering</span></div>`;
 }
 
 function coaLinks(product, variant) {
-  return `<section class="coa-box"><h2>Lab reports</h2><p>Current report links for ${variant.label}. Replace placeholder PDFs with real lab files.</p><div class="coa-links"><a href="${variant.reports.coa}" target="_blank">COA ${icon("external")}</a><a href="${variant.reports.metals}" target="_blank">Heavy metals ${icon("external")}</a><a href="${variant.reports.endotoxin}" target="_blank">Endotoxin ${icon("external")}</a></div><details><summary>View older reports</summary><a href="/certificates/archive/${product.slug}-may-2026.pdf">May 2026 archive placeholder</a><a href="/certificates/archive/${product.slug}-mar-2026.pdf">Mar 2026 archive placeholder</a></details></section>`;
+  const links = reportLinks(variant);
+  return `<section class="coa-box"><h2>Lab reports</h2><p>${links ? `Current uploaded reports for ${esc(variant.label)}.` : `Current reports for ${esc(product.name)} ${esc(variant.label)} are available on request.`}</p>${links || `<div class="empty-state small">${icon("file")}<h3>Report available on request</h3><p>Contact support for the latest documentation for this variant.</p><a data-link class="btn secondary small" href="/contact">Contact support</a></div>`}</section>`;
 }
 
 function coaCard(product) {
-  return `<article class="coa-card"><div class="coa-card-head">${productVisual(product)}<div><h2>${product.name}</h2><span class="stock-badge in-stock">Lab tested</span></div></div><p>Third-party COA, identity, heavy metals, and endotoxin report placeholders.</p><div class="dosage-row">${product.variants.map((v) => `<span>${v.label}</span>`).join("")}</div><a class="btn secondary small" href="${product.variants[0].reports.coa}" target="_blank">Click to view report</a><details><summary>View older reports</summary><a href="/certificates/archive/${product.slug}-may-2026.pdf">May 2026 COA</a><a href="/certificates/archive/${product.slug}-mar-2026.pdf">Mar 2026 COA</a></details></article>`;
+  const firstReport = product.variants.map((variant) => variant.reports.coa).find(Boolean);
+  return `<article class="coa-card"><div class="coa-card-head">${productVisual(product)}<div><h2>${product.name}</h2><span class="stock-badge ${firstReport ? "in-stock" : "back-soon"}">${firstReport ? "Reports linked" : "On request"}</span></div></div><p>COA, heavy metals, and endotoxin files are listed by variant when uploaded.</p><div class="dosage-row">${product.variants.map((v) => `<span>${v.label}</span>`).join("")}</div>${firstReport ? `<a class="btn secondary small" href="${assetPath(firstReport)}" target="_blank" rel="noopener">View first COA ${icon("external")}</a>` : `<a data-link class="btn secondary small" href="/contact">Request report</a>`}<details><summary>Variant report links</summary>${product.variants.map((variant) => `<div class="report-row"><strong>${esc(variant.label)}</strong>${reportLinks(variant) || "<span>Available on request</span>"}</div>`).join("")}</details></article>`;
+}
+
+function reportLinks(variant) {
+  const labels = [
+    ["coa", "COA"],
+    ["metals", "Heavy metals"],
+    ["endotoxin", "Endotoxin"]
+  ];
+  const links = labels
+    .filter(([key]) => variant.reports[key])
+    .map(([key, label]) => `<a href="${assetPath(variant.reports[key])}" target="_blank" rel="noopener">${label} ${icon("external")}</a>`);
+  return links.length ? `<div class="coa-links">${links.join("")}</div>` : "";
 }
 
 function articleGrid(posts, compact = false) {
@@ -837,8 +1235,9 @@ function resultRow(label, value) {
   return `<div class="result-row"><span>${label}</span><strong>${value}</strong></div>`;
 }
 
-function contactCard(iconName, title, value, action) {
-  return `<article class="contact-card"><div class="feature-icon">${icon(iconName)}</div><h2>${title}</h2><p>${value}</p><button class="btn secondary small" type="button">${action}</button></article>`;
+function contactCard(iconName, title, value, action, href, external = false) {
+  const attrs = external ? `target="_blank" rel="noopener"` : href.startsWith("/") ? "data-link" : "";
+  return `<article class="contact-card"><div class="feature-icon">${icon(iconName)}</div><h2>${title}</h2><p>${value}</p><a class="btn secondary small" href="${href}" ${attrs}>${action}</a></article>`;
 }
 
 function formPanel(title, success, fields) {
@@ -850,7 +1249,7 @@ function summaryRow(label, value, strong = false) {
 }
 
 function ctaBand() {
-  return `<section class="cta-band"><div class="container"><h2>Ready for your brand assets?</h2><p>Swap placeholders for your company name, products, imagery, lab reports, and payment provider.</p><div class="button-row"><a data-link class="btn primary" href="/shop">Browse catalog</a><a data-link class="btn secondary light" href="/contact">Contact support</a></div></div></section>`;
+  return `<section class="cta-band"><div class="container"><h2>Explore MAXXFIT LABS research products.</h2><p>Browse variants, review available lab reports, use the calculator, and place a market-aware research order.</p><div class="button-row"><a data-link class="btn primary" href="/shop">Browse catalog</a><a data-link class="btn secondary light" href="/contact">Contact support</a></div></div></section>`;
 }
 
 function readJson(key, fallback) {
