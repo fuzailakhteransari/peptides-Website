@@ -657,32 +657,26 @@ function homePage() {
   const best = products.filter((p) => p.category === "Peptides").slice(0, 8);
   const bundles = products.filter((p) => p.category === "Bundles");
   return `
-    <section class="hero band">
-      <div class="hero-particles" aria-hidden="true"></div>
-      <div class="hero-atmosphere hero-atmosphere-right" aria-hidden="true"></div>
-      <div class="hero-atmosphere hero-atmosphere-left" aria-hidden="true"></div>
-      <div class="hero-atmosphere hero-atmosphere-bottle" aria-hidden="true"></div>
-      <div class="hero-readability" aria-hidden="true"></div>
-      <div class="hero-vignette" aria-hidden="true"></div>
-      <div class="container hero-grid">
-        <div class="hero-copy reveal">
-          <span class="hero-pill"><span class="pulse-dot"></span> Batch documents when available | ${active.label} - ${active.currency}</span>
-          <h1>Premium research peptides <span class="text-accent">you can trust.</span></h1>
+    <section class="agy-hero">
+      <div class="agy-particles" id="hero-particles" aria-hidden="true"></div>
+      <div class="agy-glow agy-glow-right" aria-hidden="true"></div>
+      <div class="agy-glow agy-glow-left" aria-hidden="true"></div>
+      <div class="agy-glow agy-glow-product" aria-hidden="true"></div>
+      <div class="agy-readability" aria-hidden="true"></div>
+      <div class="agy-vignette" aria-hidden="true"></div>
+      <div class="agy-hero-shell">
+        <div class="agy-hero-copy reveal">
+          <span class="agy-pill"><span class="pulse-dot"></span> Batch documents when available</span>
+          <h1>Premium research <br>peptides <span>you can <br>trust.</span></h1>
           <p>MAXXFIT LABS supplies precision-sourced research materials with available batch documentation, clear research-use standards, and checkout details built for each market.</p>
-          <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
+          <div class="agy-actions"><a data-link class="agy-btn agy-btn-primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="agy-btn agy-btn-outline" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="agy-btn agy-btn-outline" href="/contact">${icon("chat")} Contact support</a></div>
         </div>
-        <div class="hero-visual hero-product-wash reveal" aria-hidden="true">
-          <div class="hero-art-bloom hero-art-bloom-primary"></div>
-          <div class="hero-art-bloom hero-art-bloom-secondary"></div>
-          <div class="hero-art-orb hero-art-orb-one"></div>
-          <div class="hero-art-orb hero-art-orb-two"></div>
-          <div class="hero-product-echo hero-product-echo-back"><img src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt=""></div>
-          <div class="hero-product-echo hero-product-echo-mid"><img src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt=""></div>
-          <img class="hero-showcase-image" src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt="">
-          <div class="hero-product-shelf"></div>
-        </div>
+        <div class="agy-hero-spacer" aria-hidden="true"></div>
       </div>
-      <div class="hero-bottom-fade" aria-hidden="true"></div>
+      <div class="agy-product-mural" aria-hidden="true">
+        <img src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt="">
+      </div>
+      <div class="agy-bottom-fade" aria-hidden="true"></div>
     </section>
 
     <section class="in-the-wild-band">
