@@ -570,20 +570,75 @@ function shopPage() {
   if (params.has("sort")) state.shopSort = params.get("sort") || "featured";
   if (params.has("stock")) state.shopStock = params.get("stock") === "1";
   const items = filteredShopItems(active);
+  const totalPerCategory = Object.fromEntries(categories.map((c) => [c, products.filter((p) => p.category === c).length]));
   return `
-    <section class="section container">
-      ${pageHero("Shop", "MAXXFIT LABS catalog", "Browse research peptides, bundles, supplies, and accessories with market-aware pricing.")}
-      <div class="trust-pill-row">${["Lab reports linked when available", market().shipping, market().orderMode, "Support and tracking included"].map((item) => `<span>${icon("check")} ${item}</span>`).join("")}</div>
-      <div class="category-tabs" role="tablist">${categories.map((cat) => `<button data-category="${cat}" class="${active === cat ? "active" : ""}" role="tab" aria-selected="${active === cat}">${cat}</button>`).join("")}</div>
-      <div class="catalog-toolbar">
-        <label>Search products<input data-shop-query value="${esc(state.shopQuery)}" placeholder="Search by name, variant, category, or SKU"></label>
-        <label>Sort<select data-shop-sort><option value="featured">Featured</option><option value="new">Newest</option><option value="price-low">Price low to high</option><option value="price-high">Price high to low</option></select></label>
-        <label class="checkbox-label"><input data-shop-stock type="checkbox" ${state.shopStock ? "checked" : ""}> In stock only</label>
+    <section class="shop-hero band">
+      <div class="shop-hero-glow" aria-hidden="true"></div>
+      <div class="container">
+        <nav class="breadcrumbs light" aria-label="Breadcrumb">
+          <a data-link href="/">Home</a><span>/</span><span aria-current="page">Shop</span>
+        </nav>
+        <div class="shop-hero-inner reveal">
+          <span class="hero-pill"><span class="pulse-dot"></span> US Made & Shipped &nbsp;•&nbsp; Same Day Shipping &nbsp;•&nbsp; ${market().label}</span>
+          <h1>Shop research <span class="text-accent">peptides.</span></h1>
+          <p>Precision-sourced peptides, bundles, sprays, oral tablets and lab supplies — every batch verified for 99%+ purity and lab-documented on request.</p>
+        </div>
+        <div class="shop-trust-row reveal">
+          ${shopTrustPill("shield", ">99% Purity")}
+          ${shopTrustPill("test", "3rd-Party Tested")}
+          ${shopTrustPill("flask", "US Manufactured")}
+          ${shopTrustPill("truck", market().shipping)}
+        </div>
       </div>
-      <p class="result-count" data-shop-count aria-live="polite">Showing ${items.length} products in ${active}.</p>
-      <div data-shop-results>${productGrid(items)}</div>
+    </section>
+
+    <section class="container shop-body">
+      <div class="category-tabs reveal" role="tablist" aria-label="Product categories">
+        ${categories.map((cat) => `<button data-category="${cat}" class="${active === cat ? "active" : ""}" role="tab" aria-selected="${active === cat}"><span>${cat}</span><em>${totalPerCategory[cat]}</em></button>`).join("")}
+      </div>
+
+      <div class="shop-toolbar reveal">
+        <div class="shop-search">
+          <span class="shop-search-icon" aria-hidden="true">${icon("search")}</span>
+          <input data-shop-query value="${esc(state.shopQuery)}" placeholder="Search by name, variant, category, or SKU" aria-label="Search products">
+        </div>
+        <div class="shop-toolbar-actions">
+          <label class="shop-stock-toggle">
+            <input data-shop-stock type="checkbox" ${state.shopStock ? "checked" : ""}>
+            <span>In stock only</span>
+          </label>
+          <div class="shop-sort">
+            <span aria-hidden="true">${icon("sort")}</span>
+            <select data-shop-sort aria-label="Sort products">
+              <option value="featured" ${state.shopSort === "featured" ? "selected" : ""}>Featured</option>
+              <option value="new" ${state.shopSort === "new" ? "selected" : ""}>Newest</option>
+              <option value="price-low" ${state.shopSort === "price-low" ? "selected" : ""}>Price: low to high</option>
+              <option value="price-high" ${state.shopSort === "price-high" ? "selected" : ""}>Price: high to low</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="shop-results-header">
+        <p class="result-count" data-shop-count aria-live="polite">Showing <strong>${items.length}</strong> products in <strong>${active}</strong>.</p>
+      </div>
+
+      <div data-shop-results class="reveal">${productGrid(items)}</div>
+
+      <div class="shop-help-band reveal">
+        <div>
+          <span class="eyebrow">Need Help Choosing?</span>
+          <h3>Talk to our team.</h3>
+          <p>Our research specialists are online 7 days a week to help match peptides to your protocol.</p>
+        </div>
+        <div class="button-row"><a data-link class="btn primary" href="/contact">Contact Support ${icon("arrow")}</a><a data-link class="btn secondary" href="/peptide-calculator">${icon("calc")} Open Calculator</a></div>
+      </div>
     </section>
   `;
+}
+
+function shopTrustPill(iconName, label) {
+  return `<span class="shop-trust-pill">${icon(iconName)}<strong>${label}</strong></span>`;
 }
 
 function filteredShopItems(active) {
@@ -609,7 +664,7 @@ function updateShopResults() {
   const resultTarget = document.querySelector("[data-shop-results]");
   const countTarget = document.querySelector("[data-shop-count]");
   if (resultTarget) resultTarget.innerHTML = productGrid(items);
-  if (countTarget) countTarget.textContent = `Showing ${items.length} products in ${active}.`;
+  if (countTarget) countTarget.innerHTML = `Showing <strong>${items.length}</strong> products in <strong>${active}</strong>.`;
   params.set("category", active);
   if (state.shopQuery.trim()) params.set("q", state.shopQuery.trim());
   else params.delete("q");
@@ -1343,8 +1398,29 @@ function productCard(product) {
   const max = Math.max(...prices);
   const isBundle = product.category === "Bundles";
   const badge = isBundle ? "Bundle & Save" : product.badge;
-  const action = isBundle ? "View Bundle" : "View Details";
-  return `<article class="product-card"><a data-link href="/product/${product.slug}" class="product-image-link" aria-label="${esc(product.name)} details">${badge ? `<span class="floating-badge">${badge}</span>` : ""}${productVisual(product)}</a><div class="product-card-body"><span class="category-label">${product.group}</span><h3><a data-link href="/product/${product.slug}">${product.name}</a></h3><div class="card-meta"><strong>${min === max ? marketPrice(min) : `${marketPrice(min)} - ${marketPrice(max)}`}</strong>${stockBadge(product.stock)}</div><a data-link class="btn small primary" href="/product/${product.slug}">${action} ${icon("arrow")}</a></div></article>`;
+  const action = isBundle ? "View Bundle" : "Select Options";
+  const variantCount = product.variants.length;
+  const stockOverlay = { "low-stock": ["Low Stock", "low"], "out-of-stock": ["Out of Stock", "out"], "back-soon": ["Back Soon", "back"] }[product.stock];
+  const showStockOverlay = stockOverlay && !isBundle;
+  return `<article class="product-card ${product.stock === "out-of-stock" ? "is-oos" : ""}">
+    <a data-link href="/product/${product.slug}" class="product-image-link" aria-label="${esc(product.name)} details">
+      ${badge && !showStockOverlay ? `<span class="floating-badge">${badge}</span>` : ""}
+      ${showStockOverlay ? `<span class="floating-badge stock-${stockOverlay[1]}">${stockOverlay[0]}</span>` : ""}
+      ${productVisual(product)}
+      <span class="product-quick-view">${icon("search")} Quick View</span>
+    </a>
+    <div class="product-card-body">
+      <span class="category-label">${product.group}</span>
+      <h3><a data-link href="/product/${product.slug}">${product.name}</a></h3>
+      <div class="product-price-row">
+        <strong class="product-price">${min === max ? marketPrice(min) : `${marketPrice(min)} <span class="price-sep">–</span> ${marketPrice(max)}`}</strong>
+        ${variantCount > 1 ? `<span class="variant-count">${variantCount} variants</span>` : ""}
+      </div>
+      <a data-link class="product-select-btn" href="/product/${product.slug}">
+        ${action} ${icon("arrow")}
+      </a>
+    </div>
+  </article>`;
 }
 
 function productGrid(items) {
@@ -1496,7 +1572,9 @@ function icon(name) {
     chevron: '<path d="M6 9l6 6 6-6"></path>',
     external: '<path d="M14 3h7v7"></path><path d="M10 14L21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path>',
     minus: '<path d="M5 12h14"></path>',
-    plus: '<path d="M12 5v14M5 12h14"></path>'
+    plus: '<path d="M12 5v14M5 12h14"></path>',
+    sort: '<path d="M3 6h13"></path><path d="M3 12h9"></path><path d="M3 18h5"></path><path d="M17 6v14"></path><path d="M13 16l4 4 4-4"></path>',
+    filter: '<path d="M3 5h18l-7 8v6l-4 2v-8z"></path>'
   };
   const size = name.endsWith("large") ? 80 : 20;
   return `<svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.check}</svg>`;
