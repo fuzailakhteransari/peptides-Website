@@ -5268,6 +5268,12 @@ h3 {
     padding: 14px;
   }
 
+  .shop-search {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+  }
+
   .shop-toolbar-actions {
     justify-content: space-between;
   }
