@@ -438,6 +438,12 @@ function homePage() {
   const bundles = products.filter((p) => p.category === "Bundles");
   return `
     <section class="hero band">
+      <div class="hero-particles" aria-hidden="true"></div>
+      <div class="hero-atmosphere hero-atmosphere-right" aria-hidden="true"></div>
+      <div class="hero-atmosphere hero-atmosphere-left" aria-hidden="true"></div>
+      <div class="hero-atmosphere hero-atmosphere-bottle" aria-hidden="true"></div>
+      <div class="hero-readability" aria-hidden="true"></div>
+      <div class="hero-vignette" aria-hidden="true"></div>
       <div class="container hero-grid">
         <div class="hero-copy reveal">
           <span class="hero-pill"><span class="pulse-dot"></span> Batch documents when available | ${active.label} - ${active.currency}</span>
@@ -446,9 +452,10 @@ function homePage() {
           <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
         </div>
         <div class="hero-visual hero-product-wash reveal" aria-hidden="true">
-          <img class="hero-showcase-image" src="${assetPath("assets/maxxfit/hero-reta-showcase.png")}" alt="">
+          <img class="hero-showcase-image" src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt="">
         </div>
       </div>
+      <div class="hero-bottom-fade" aria-hidden="true"></div>
     </section>
 
     <section class="in-the-wild-band">
