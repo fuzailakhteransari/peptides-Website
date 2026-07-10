@@ -672,7 +672,14 @@ function homePage() {
           <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
         </div>
         <div class="hero-visual hero-product-wash reveal" aria-hidden="true">
+          <div class="hero-art-bloom hero-art-bloom-primary"></div>
+          <div class="hero-art-bloom hero-art-bloom-secondary"></div>
+          <div class="hero-art-orb hero-art-orb-one"></div>
+          <div class="hero-art-orb hero-art-orb-two"></div>
+          <div class="hero-product-echo hero-product-echo-back"><img src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt=""></div>
+          <div class="hero-product-echo hero-product-echo-mid"><img src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt=""></div>
           <img class="hero-showcase-image" src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt="">
+          <div class="hero-product-shelf"></div>
         </div>
       </div>
       <div class="hero-bottom-fade" aria-hidden="true"></div>
