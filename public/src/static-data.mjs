@@ -66,27 +66,27 @@ const imageMap = {};
 
 export const products = [
   product("reta-research-peptide", "RETA Research Peptide", "Peptides", "Metabolic Research", "Flagship lyophilized research peptide with variant-specific batch documentation.", 188, [["5MG", 39.99], ["10MG", 64.99], ["20MG", 94.99], ["30MG", 119.99]], "Best seller"),
-  product("nad-plus-research-peptide", "NAD+ Research Peptide", "Peptides", "Cellular Energy Research", "Cellular energy research material for laboratory study workflows.", 194, [["250MG", 74.99], ["500MG", 129.99]], "New"),
+  product("nad-plus-research-peptide", "NAD+ Research Peptide", "Peptides", "Cellular Energy Research", "Lyophilized cellular-energy research material supplied in two laboratory sizes.", 194, [["250MG", 74.99], ["500MG", 129.99]], "New"),
   product("tb-500-research-peptide", "TB-500 Research Peptide", "Peptides", "Repair and Recovery Research", "Thymosin beta research material with linked purity, metals, and endotoxin reports.", 184, [["5MG", 44.99], ["10MG", 79.99]], "COA ready"),
   product("mots-c-research-peptide", "MOTS-c Research Peptide", "Peptides", "Mitochondrial Research", "Mitochondrial research material available in multiple laboratory sizes.", 176, [["10MG", 69.99], ["50MG", 189.99]], "Low stock", "low-stock"),
-  product("bpc-157-research-peptide", "BPC-157 Research Peptide", "Peptides", "Repair and Recovery Research", "Research peptide with current lab report access by variant.", 168, [["5MG", 49.99], ["10MG", 89.99]], "Popular"),
-  product("glow-research-blend", "GLOW Research Blend", "Peptides", "Cosmetic Research", "Cosmetic research blend presented with research-only compliance language.", 36, [["70MG", 84.99]], "Blend"),
-  product("cjc-1295-research-peptide", "CJC-1295 Research Peptide", "Peptides", "GH and Regeneration Research", "CJC research material with DAC and no-DAC variants.", 204, [["No DAC 5MG", 54.99], ["DAC 5MG", 69.99]]),
+  product("bpc-157-research-peptide", "BPC-157 Research Peptide", "Peptides", "Repair and Recovery Research", "Lyophilized research peptide with batch documentation available by variant.", 168, [["5MG", 49.99], ["10MG", 89.99]], "Popular"),
+  product("glow-research-blend", "GLOW Research Blend", "Peptides", "Cosmetic Research", "Multi-peptide cosmetic research blend supplied as a single lyophilized vial.", 36, [["70MG", 84.99]], "Blend"),
+  product("cjc-1295-research-peptide", "CJC-1295 Research Peptide", "Peptides", "GH and Regeneration Research", "Lyophilized research peptide available in DAC and no-DAC variants.", 204, [["No DAC 5MG", 54.99], ["DAC 5MG", 69.99]]),
   product("ipamorelin-research-peptide", "Ipamorelin Research Peptide", "Peptides", "GH and Regeneration Research", "Growth-hormone secretagogue research material for qualified laboratory workflows.", 216, [["5MG", 39.99]]),
-  product("semax-research-peptide", "Semax Research Peptide", "Peptides", "Neurological Research", "Neurological research peptide with batch document access.", 196, [["11MG", 59.99]]),
-  product("selank-research-peptide", "Selank Research Peptide", "Peptides", "Neurological Research", "Research-use-only peptide listing with variant-aware ordering.", 206, [["11MG", 59.99]]),
-  product("performance-stack-bundle", "Performance Stack Bundle", "Bundles", "Bundles", "RETA, NAD+, and MOTS-c bundle for structured laboratory purchasing.", 190, [["Bundle", 244.99]], "Bundle and save"),
+  product("semax-research-peptide", "Semax Research Peptide", "Peptides", "Neurological Research", "Lyophilized neurological research peptide with batch documentation available.", 196, [["11MG", 59.99]]),
+  product("selank-research-peptide", "Selank Research Peptide", "Peptides", "Neurological Research", "Lyophilized neurological research peptide supplied in a single-vial format.", 206, [["11MG", 59.99]]),
+  product("performance-stack-bundle", "Performance Stack Bundle", "Bundles", "Bundles", "RETA, NAD+, and MOTS-c grouped into a single research bundle at a bundled price.", 190, [["Bundle", 244.99]], "Bundle and save"),
   product("recovery-stack-bundle", "Recovery Stack Bundle", "Bundles", "Bundles", "BPC-157 and TB-500 blend bundle with uploaded lab documentation.", 134, [["Bundle", 285.99]], "Bundle and save"),
-  product("longevity-stack-bundle", "Longevity Stack Bundle", "Bundles", "Bundles", "Cellular energy and longevity research bundle for consolidated ordering.", 286, [["Bundle", 324.99]], "Bundle and save"),
-  product("selank-semax-nasal-spray", "Selank + Semax Nasal Spray", "Sprays", "Neurological Research", "Spray-format research product listing for a complete category structure.", 250, [["30ML", 55.99]]),
-  product("ghk-cu-skin-serum", "GHK-Cu Research Serum", "Sprays", "Cosmetic Research", "Topical-format cosmetic research catalog item.", 18, [["30ML", 29.99]]),
-  product("bpc-157-tablets", "BPC-157 Research Tablets", "Oral Peptides", "Oral Format Research", "Tablet-format research listing with compliance copy.", 92, [["250MCG", 54.99]]),
-  product("bacteriostatic-water", "Bacteriostatic Water", "Supplies + BAC", "BAC Water and Supplies", "Research supply cross-sell with multiple pack sizes.", 196, [["1 Vial", 9.99], ["10 Pack", 74.99], ["25 Pack", 174.99]], "Supply"),
-  product("1ml-laboratory-syringes", "1mL Laboratory Syringes", "Supplies + BAC", "BAC Water and Supplies", "Sterile syringe supply product with pack options.", 214, [["10 Pack", 9.99], ["25 Pack", 19.99]]),
-  product("alcohol-prep-pads", "Alcohol Prep Pads", "Supplies + BAC", "BAC Water and Supplies", "Basic lab supply add-on with pack-size variants.", 342, [["50 Pack", 4.99], ["100 Pack", 8.99]]),
-  product("peptide-pen-system", "Precision Peptide Pen System", "Accessories", "Accessories", "Reusable accessory product with starter-kit options.", 12, [["Starter Kit", 89.99], ["Complete Kit", 105.99]], "Accessory"),
-  product("pen-refill-cartridges", "Pen Refill Cartridges", "Accessories", "Accessories", "Accessory refill pack with compact pricing.", 28, [["5 Pack", 3.99], ["20 Pack", 11.99]]),
-  product("vial-stoppers", "Research Vial Stoppers", "Accessories", "Accessories", "Protective closure accessory for vial handling workflows.", 138, [["Single Stopper", 1.99]])
+  product("longevity-stack-bundle", "Longevity Stack Bundle", "Bundles", "Bundles", "Cellular-energy and longevity research peptides grouped into one bundle.", 286, [["Bundle", 324.99]], "Bundle and save"),
+  product("selank-semax-nasal-spray", "Selank + Semax Nasal Spray", "Sprays", "Neurological Research", "Selank and Semax research blend in a metered spray format.", 250, [["30ML", 55.99]]),
+  product("ghk-cu-skin-serum", "GHK-Cu Research Serum", "Sprays", "Cosmetic Research", "GHK-Cu cosmetic research serum in a topical dropper format.", 18, [["30ML", 29.99]]),
+  product("bpc-157-tablets", "BPC-157 Research Tablets", "Oral Peptides", "Oral Format Research", "BPC-157 research material in a tablet-format listing.", 92, [["250MCG", 54.99]]),
+  product("bacteriostatic-water", "Bacteriostatic Water", "Supplies + BAC", "BAC Water and Supplies", "Sterile bacteriostatic water for reconstituting lyophilized research materials.", 196, [["1 Vial", 9.99], ["10 Pack", 74.99], ["25 Pack", 174.99]], "Supply"),
+  product("1ml-laboratory-syringes", "1mL Laboratory Syringes", "Supplies + BAC", "BAC Water and Supplies", "Sterile 1mL laboratory syringes available in multiple pack sizes.", 214, [["10 Pack", 9.99], ["25 Pack", 19.99]]),
+  product("alcohol-prep-pads", "Alcohol Prep Pads", "Supplies + BAC", "BAC Water and Supplies", "Sterile alcohol prep pads for laboratory surface and vial preparation.", 342, [["50 Pack", 4.99], ["100 Pack", 8.99]]),
+  product("peptide-pen-system", "Precision Peptide Pen System", "Accessories", "Accessories", "Reusable precision pen accessory available as a starter or complete kit.", 12, [["Starter Kit", 89.99], ["Complete Kit", 105.99]], "Accessory"),
+  product("pen-refill-cartridges", "Pen Refill Cartridges", "Accessories", "Accessories", "Replacement cartridges for the precision pen system.", 28, [["5 Pack", 3.99], ["20 Pack", 11.99]]),
+  product("vial-stoppers", "Research Vial Stoppers", "Accessories", "Accessories", "Replacement rubber stoppers for resealing and handling research vials.", 138, [["Single Stopper", 1.99]])
 ];
 
 function product(slug, name, category, group, short, hue, variantRows, badge = "", stock = "in-stock") {
@@ -132,9 +132,9 @@ function post(slug, title, category, excerpt) {
     date: "2026-07-09",
     readTime: "6 min read",
     body: [
-      "MAXXFIT LABS content is written for lawful in-vitro research workflows. Product pages, certificates, checkout, and support pages should avoid unsupported claims and keep research-use-only language clear.",
-      "Use product-specific documentation whenever it is available. If a current report has not been uploaded, the storefront shows an availability notice rather than linking to a missing file.",
-      "For planning tools, use validated laboratory SOPs and reviewed product-specific instructions. The calculator is a planning aid and does not replace qualified laboratory judgment."
+      "Every MAXXFIT LABS listing is intended for lawful in-vitro laboratory research only. Before adding a material to a research protocol, confirm that the product format, amount, and available batch documentation match your study requirements.",
+      "When a certificate of analysis has been issued for a batch, it is linked directly on the product and lab report pages. If a report for a specific variant has not yet been published, request it from the team before relying on documentation.",
+      "Reconstitution and handling should follow validated laboratory procedures. The calculator is a planning aid for concentration and volume math; it supports, but does not replace, qualified laboratory judgment."
     ]
   };
 }

@@ -1,4 +1,4 @@
-# MAXXFIT LABS Storefront — PRD
+# MAXXFIT LABS Storefront - PRD
 
 ## Original problem statement
 "I want to make it feels like https://pspeptides.com/. Make the User Experience & Feels like https://pspeptides.com/ in https://peptides-website-teal.vercel.app/"
@@ -33,15 +33,31 @@
 - **Button micro-animations**: hover lifts, arrow slides on hover
 - **Preserved**: cart drawer, checkout flow, product page, shop filters, calculator, COA library, order tracking, admin, researcher gate
 
+### Shop page redesign (2026-01, second pass)
+- **Shop hero**: dark gradient band with breadcrumb, pulse-dot pill (US Made / Same Day / market), big headline "Shop research peptides.", 4 trust pills (>99% Purity, 3rd-Party Tested, US Manufactured, market shipping) with icons
+- **Category tabs**: pill tabs with product-count badges, gradient background on active, hover lift
+- **Sticky toolbar**: single row with icon-prefixed search, "In stock only" toggle (accented when active), Featured/Newest/Price sort dropdown with custom chevron
+- **Result count**: bold count + category name
+- **Redesigned product cards**:
+  - Light-gradient image well (was dark navy) with rounded top corners
+  - Badge (top-left) merges product badge + stock indicator (no duplicates); orange/gray/teal palette per stock state
+  - Category label in accent, product name in bold ink
+  - Price row with dashed range separator + "N variants" chip
+  - Black "Select Options" CTA that hover-morphs to teal gradient with sliding arrow
+  - "Quick View" chip fades up on hover
+  - Out-of-stock gets grayscale visual
+- **Shop help band**: dark CTA at bottom of grid ("Talk to our team" - Contact Support + Open Calculator)
+- **Responsive**: 4 cols -> 3 -> 2 -> 1 across breakpoints; toolbar stacks nicely on mobile
+
 ## Files touched
-- `src/static-app.js` — new home layout, announcements rotator, scroll reveal, review card component, quality feature component
-- `src/styles.css` — appended "PSPEPTIDES-INSPIRED POLISH LAYER" with keyframes, marquee, reveal, hero pill/stats, tool CTA, quality band, affiliate band, verification cards, CTA band, button polish, responsive tweaks
-- `src/site-bundle.js` — regenerated
-- `scripts/bundle.mjs` — new build script that concatenates the three source files
-- `package.json` — added `bundle` / updated `build` scripts
+- `src/static-app.js` - new home layout, announcements rotator, scroll reveal, review card component, quality feature component; full shopPage() rewrite, redesigned productCard(), new shopTrustPill(), added `sort` / `filter` icons
+- `src/styles.css` - appended "PSPEPTIDES-INSPIRED POLISH LAYER" and "SHOP PAGE - PREMIUM REDESIGN" sections with keyframes, marquee, reveal, hero pill/stats, tool CTA, quality band, affiliate band, reviews, CTA band, button polish, shop hero, category tabs, toolbar, product cards, help band, responsive tweaks
+- `src/site-bundle.js` - regenerated
+- `scripts/bundle.mjs` - new build script that concatenates the three source files
+- `package.json` - added `bundle` / updated `build` scripts
 
 ## Verification
-- `node src/test/math.test.mjs` → pricing/calculator tests pass
+- `node src/test/math.test.mjs` -> pricing/calculator tests pass
 - Browser checks (hero, marquee, bundles, quality, affiliate, verification cards, shop, product, cart) render correctly
 - Cart / checkout / product / shop flow untouched and working
 - ESLint clean

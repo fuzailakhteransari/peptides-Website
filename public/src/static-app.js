@@ -26,7 +26,7 @@ const MARKETS = {
   sea: {
     key: "sea",
     label: "Indonesia / SEA",
-    shortLabel: "ID / SEA",
+    shortLabel: "ID/SEA",
     currency: "IDR",
     locale: "id-ID",
     fx: 16000,
@@ -51,12 +51,12 @@ const ANNOUNCEMENTS = [
 ];
 
 const TRUST_POINTS = [
-  { icon: "shield", title: "Research-use controls", body: "The site includes researcher verification, product disclaimers, and checkout language for lawful in-vitro laboratory research only." },
-  { icon: "file", title: "Report visibility", body: "COA, heavy metals, and endotoxin files are linked by variant when uploaded, with request messaging when a report is not yet posted." },
-  { icon: "truck", title: "Market-aware checkout", body: "US visitors use online checkout. Indonesia / SEA visitors see COD language and phone or WhatsApp confirmation before dispatch." },
-  { icon: "calc", title: "Planning tools", body: "The calculator helps estimate concentration, syringe units, dose volume, and doses per vial for lab workflow planning." },
-  { icon: "chat", title: "Support handoff", body: "Contact, WhatsApp, tracking, and local account states remain available across the storefront." },
-  { icon: "box", title: "Catalog structure", body: "Peptides, bundles, supplies, accessories, reports, and educational guides stay connected through the static storefront." }
+  { icon: "shield", title: "Research-use only", body: "Every product, cart, and checkout page states that materials are supplied for lawful in-vitro laboratory research only." },
+  { icon: "file", title: "Batch documentation", body: "COA, heavy metals, and endotoxin reports are linked by variant when available, with request messaging when a report has not been posted." },
+  { icon: "truck", title: "Market-aware checkout", body: "US orders use online checkout. Indonesia and Southeast Asia orders use COD language with phone or WhatsApp confirmation before dispatch." },
+  { icon: "calc", title: "Reconstitution calculator", body: "Estimate concentration, syringe units, dose volume, and doses per vial for laboratory planning before placing an order." },
+  { icon: "chat", title: "Responsive support", body: "Email, WhatsApp, order tracking, and account tools stay reachable from support pages across the storefront." },
+  { icon: "box", title: "Organized catalog", body: "Peptides, bundles, supplies, accessories, lab reports, and research guides are kept together in one connected catalog." }
 ];
 
 // Toggle this to false to remove the researcher verification gate without deleting the UI.
@@ -412,7 +412,7 @@ function footer() {
       <div class="container footer-grid">
         <section>
           <a data-link href="/" class="brand footer-brand">${brandLogo()}<span><strong>MAXXFIT LABS</strong><small>Research Storefront</small></span></a>
-          <p>Premium research peptide storefront with available lab reports, market-aware ordering, and responsive support.</p>
+          <p>Precision-sourced research peptides with available batch documentation, market-aware ordering, and responsive support.</p>
           <div class="social-row" aria-label="Support channels"><a href="${CONTACT.whatsappHref}" target="_blank" rel="noopener">WA</a><a href="mailto:${CONTACT.email}">EM</a><a data-link href="/contact">Help</a></div>
         </section>
         ${footerColumn("Quick Links", [["Shop All", "/shop"], ["My Account", "/account"], ["Lab Results", "/certifications"], ["Calculator", "/peptide-calculator"]])}
@@ -437,25 +437,33 @@ function homePage() {
   const best = products.filter((p) => p.category === "Peptides").slice(0, 8);
   const bundles = products.filter((p) => p.category === "Bundles");
   return `
-    <section class="hero band">
-      <div class="container hero-grid">
-        <div class="hero-copy reveal">
-          <span class="hero-pill"><span class="pulse-dot"></span> Batch documents when available | ${active.label} - ${active.currency}</span>
-          <h1>Premium research peptides <span class="text-accent">you can trust.</span></h1>
-          <p>MAXXFIT LABS delivers precision-sourced research materials with market-aware checkout, visible research-use language, and batch documentation links when available.</p>
-          <div class="button-row"><a data-link class="btn primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="btn secondary light" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="btn ghost" href="/contact">${icon("chat")} Contact support</a></div>
+    <section class="agy-hero">
+      <div class="agy-particles" id="hero-particles" aria-hidden="true"></div>
+      <div class="agy-glow agy-glow-right" aria-hidden="true"></div>
+      <div class="agy-glow agy-glow-left" aria-hidden="true"></div>
+      <div class="agy-glow agy-glow-product" aria-hidden="true"></div>
+      <div class="agy-readability" aria-hidden="true"></div>
+      <div class="agy-vignette" aria-hidden="true"></div>
+      <div class="agy-hero-shell">
+        <div class="agy-hero-copy reveal">
+          <span class="agy-pill"><span class="pulse-dot"></span> Batch documents when available</span>
+          <h1>Premium research <br>peptides <span>you can <br>trust.</span></h1>
+          <p>MAXXFIT LABS supplies precision-sourced research materials with available batch documentation, clear research-use standards, and checkout details built for each market.</p>
+          <div class="agy-actions"><a data-link class="agy-btn agy-btn-primary" href="/shop">Shop peptides ${icon("arrow")}</a><a data-link class="agy-btn agy-btn-outline" href="/certifications">${icon("shield")} View lab reports</a><a data-link class="agy-btn agy-btn-outline" href="/contact">${icon("chat")} Contact support</a></div>
         </div>
-        <div class="hero-visual hero-product-wash reveal" aria-hidden="true">
-          <img class="hero-showcase-image" src="${assetPath("assets/maxxfit/hero-reta-showcase.png")}" alt="">
-        </div>
+        <div class="agy-hero-spacer" aria-hidden="true"></div>
       </div>
+      <div class="agy-product-mural" aria-hidden="true">
+        <img src="${assetPath("assets/maxxfit/ChatGPT_Image_Jul_10__2026__11_19_07_AM-removebg-preview.png")}" alt="">
+      </div>
+      <div class="agy-bottom-fade" aria-hidden="true"></div>
     </section>
 
     <section class="in-the-wild-band">
-      <div class="container section-heading-narrow reveal"><span class="eyebrow">In Real Life</span><h2>MAXXFIT LABS <span class="text-accent">in the wild.</span></h2></div>
+      <div class="container section-heading-narrow reveal"><span class="eyebrow">Product Gallery</span><h2>See the MAXXFIT LABS <span class="text-accent">range.</span></h2></div>
       <div class="marquee" aria-label="MAXXFIT LABS product photos" data-marquee>
         <div class="marquee-track">
-          ${[...wildImages, ...wildImages, ...wildImages].map((src) => `<div class="marquee-item"><img src="${assetPath(src)}" alt="MAXXFIT LABS product in the wild" loading="lazy"></div>`).join("")}
+          ${[...wildImages, ...wildImages, ...wildImages].map((src) => `<div class="marquee-item"><img src="${assetPath(src)}" alt="MAXXFIT LABS research product" loading="lazy"></div>`).join("")}
         </div>
       </div>
     </section>
@@ -463,7 +471,7 @@ function homePage() {
     <section class="tool-cta-band container">
       <a data-link class="tool-cta reveal" href="/peptide-calculator">
         <div class="tool-cta-icon">${icon("calc")}</div>
-        <div><strong>Reconstitution Calculator</strong><span>Get exact dosing volumes for any peptide in seconds.</span></div>
+        <div><strong>Reconstitution Calculator</strong><span>Estimate concentration and volume math for laboratory planning.</span></div>
         <span class="tool-cta-action">Open Calculator ${icon("arrow")}</span>
       </a>
       <a data-link class="tool-cta reveal" href="/certifications">
@@ -489,12 +497,12 @@ function homePage() {
 
     <section class="section quality-band">
       <div class="container">
-        <div class="section-heading reveal"><span class="eyebrow">Why MAXXFIT LABS</span><h2>Quality you can <span class="text-accent">review.</span></h2><p>The storefront keeps documentation, checkout mode, and research-use context visible throughout the buying path.</p></div>
+        <div class="section-heading reveal"><span class="eyebrow">Why MAXXFIT LABS</span><h2>Quality you can <span class="text-accent">review.</span></h2><p>Documentation, market details, and research-use context stay visible throughout the buying path.</p></div>
         <div class="feature-grid reveal">
-          ${qualityFeature("test", "Report Access", "COA, heavy metals, and endotoxin documents are linked when uploaded for a product variant.")}
-          ${qualityFeature("shield", "Research-Use Language", "Product, cart, checkout, and legal pages keep in-vitro research-only language visible.")}
-          ${qualityFeature("truck", "Regional Fulfillment", "US and Indonesia / SEA visitors see market-specific currency, delivery, and confirmation details.")}
-          ${qualityFeature("chat", "Support Paths", "Email, WhatsApp handoff, tracking, and order verification remain reachable from support pages.")}
+          ${qualityFeature("test", "Report Access", "Certificates of analysis, heavy metals, and endotoxin reports are linked to matching variants when available.")}
+          ${qualityFeature("shield", "Research-Use Standards", "Research-use-only status is stated clearly on product, cart, checkout, and policy pages.")}
+          ${qualityFeature("truck", "Regional Fulfillment", "US and Indonesia / SEA visitors see pricing, delivery, and confirmation details matched to their market.")}
+          ${qualityFeature("chat", "Reachable Support", "Email, WhatsApp, order tracking, and batch verification are reachable from support pages.")}
         </div>
       </div>
     </section>
@@ -521,7 +529,7 @@ function homePage() {
 
     <section class="section reviews-band">
       <div class="container">
-        <div class="section-heading reveal"><span class="eyebrow">Verification</span><h2>Researcher confidence <span class="text-accent">points.</span></h2><p>Clear operational signals are surfaced before checkout so customers can review documentation, market rules, and support paths.</p></div>
+        <div class="section-heading reveal"><span class="eyebrow">What to expect</span><h2>Built for research <span class="text-accent">confidence.</span></h2><p>The details that matter for laboratory purchasing, from documentation to market rules to support, are clear before checkout.</p></div>
         <div class="reviews-grid reveal">${TRUST_POINTS.map(confidenceCard).join("")}</div>
       </div>
     </section>
@@ -550,24 +558,80 @@ function confidenceCard(point) {
 function shopPage() {
   const params = new URLSearchParams(location.search);
   const active = params.get("category") || "Peptides";
-  if (!state.shopQuery && params.has("q")) state.shopQuery = params.get("q") || "";
-  if (params.has("sort")) state.shopSort = params.get("sort") || "featured";
-  if (params.has("stock")) state.shopStock = params.get("stock") === "1";
+  state.shopQuery = params.get("q") || "";
+  state.shopSort = params.get("sort") || "featured";
+  state.shopStock = params.get("stock") === "1";
   const items = filteredShopItems(active);
+  const totalPerCategory = Object.fromEntries(categories.map((c) => [c, products.filter((p) => p.category === c).length]));
   return `
-    <section class="section container">
-      ${pageHero("Shop", "MAXXFIT LABS catalog", "Browse research peptides, bundles, supplies, and accessories with market-aware pricing.")}
-      <div class="trust-pill-row">${["Lab reports linked when available", market().shipping, market().orderMode, "Support and tracking included"].map((item) => `<span>${icon("check")} ${item}</span>`).join("")}</div>
-      <div class="category-tabs" role="tablist">${categories.map((cat) => `<button data-category="${cat}" class="${active === cat ? "active" : ""}" role="tab" aria-selected="${active === cat}">${cat}</button>`).join("")}</div>
-      <div class="catalog-toolbar">
-        <label>Search products<input data-shop-query value="${esc(state.shopQuery)}" placeholder="Search by name, variant, category, or SKU"></label>
-        <label>Sort<select data-shop-sort><option value="featured">Featured</option><option value="new">Newest</option><option value="price-low">Price low to high</option><option value="price-high">Price high to low</option></select></label>
-        <label class="checkbox-label"><input data-shop-stock type="checkbox" ${state.shopStock ? "checked" : ""}> In stock only</label>
+    <section class="shop-hero band">
+      <div class="shop-hero-glow" aria-hidden="true"></div>
+      <div class="container">
+        <nav class="breadcrumbs light" aria-label="Breadcrumb">
+          <a data-link href="/">Home</a><span>/</span><span aria-current="page">Shop</span>
+        </nav>
+        <div class="shop-hero-inner reveal">
+          <span class="hero-pill"><span class="pulse-dot"></span> Third-party tested &nbsp;-&nbsp; Batch documentation available &nbsp;-&nbsp; ${market().label}</span>
+          <h1>Shop research <span class="text-accent">peptides.</span></h1>
+          <p>Precision-sourced peptides, bundles, sprays, oral tablets, and laboratory supplies with third-party testing documents linked when available or available by request.</p>
+        </div>
+        <div class="shop-trust-row reveal">
+          ${shopTrustPill("shield", "HPLC-Tested Purity")}
+          ${shopTrustPill("test", "3rd-Party Tested")}
+          ${shopTrustPill("file", "Batch Documented")}
+          ${shopTrustPill("truck", market().shipping)}
+        </div>
       </div>
-      <p class="result-count" data-shop-count aria-live="polite">Showing ${items.length} products in ${active}.</p>
-      <div data-shop-results>${productGrid(items)}</div>
+    </section>
+
+    <section class="container shop-body">
+      <div class="category-tabs reveal" role="tablist" aria-label="Product categories">
+        ${categories.map((cat) => `<button data-category="${cat}" class="${active === cat ? "active" : ""}" role="tab" aria-selected="${active === cat}"><span>${cat}</span><em>${totalPerCategory[cat]}</em></button>`).join("")}
+      </div>
+
+      <div class="shop-toolbar reveal">
+        <div class="shop-search">
+          <span class="shop-search-icon" aria-hidden="true">${icon("search")}</span>
+          <input data-shop-query value="${esc(state.shopQuery)}" placeholder="Search by name, variant, category, or SKU" aria-label="Search products">
+          <button class="shop-search-clear" data-shop-clear type="button" aria-label="Clear search" ${state.shopQuery ? "" : "hidden"}>${icon("x", 16)}</button>
+        </div>
+        <div class="shop-toolbar-actions">
+          <label class="shop-stock-toggle">
+            <input data-shop-stock type="checkbox" ${state.shopStock ? "checked" : ""}>
+            <span>In stock only</span>
+          </label>
+          <div class="shop-sort">
+            <span aria-hidden="true">${icon("sort")}</span>
+            <select data-shop-sort aria-label="Sort products">
+              <option value="featured" ${state.shopSort === "featured" ? "selected" : ""}>Featured</option>
+              <option value="new" ${state.shopSort === "new" ? "selected" : ""}>Newest</option>
+              <option value="price-low" ${state.shopSort === "price-low" ? "selected" : ""}>Price: low to high</option>
+              <option value="price-high" ${state.shopSort === "price-high" ? "selected" : ""}>Price: high to low</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="shop-results-header">
+        <p class="result-count" data-shop-count aria-live="polite">Showing <strong>${items.length}</strong> products in <strong>${active}</strong>.</p>
+      </div>
+
+      <div data-shop-results class="reveal">${productGrid(items)}</div>
+
+      <div class="shop-help-band reveal">
+        <div>
+          <span class="eyebrow">Need Help Choosing?</span>
+          <h3>Talk to our team.</h3>
+          <p>Not sure which format or variant fits your research order? Send the details and our support team can help compare catalog options.</p>
+        </div>
+        <div class="button-row"><a data-link class="btn primary" href="/contact">Contact Support ${icon("arrow")}</a><a data-link class="btn secondary" href="/peptide-calculator">${icon("calc")} Open Calculator</a></div>
+      </div>
     </section>
   `;
+}
+
+function shopTrustPill(iconName, label) {
+  return `<span class="shop-trust-pill">${icon(iconName)}<strong>${label}</strong></span>`;
 }
 
 function filteredShopItems(active) {
@@ -593,7 +657,7 @@ function updateShopResults() {
   const resultTarget = document.querySelector("[data-shop-results]");
   const countTarget = document.querySelector("[data-shop-count]");
   if (resultTarget) resultTarget.innerHTML = productGrid(items);
-  if (countTarget) countTarget.textContent = `Showing ${items.length} products in ${active}.`;
+  if (countTarget) countTarget.innerHTML = `Showing <strong>${items.length}</strong> products in <strong>${active}</strong>.`;
   params.set("category", active);
   if (state.shopQuery.trim()) params.set("q", state.shopQuery.trim());
   else params.delete("q");
@@ -602,6 +666,18 @@ function updateShopResults() {
   if (state.shopStock) params.set("stock", "1");
   else params.delete("stock");
   history.replaceState({}, "", browserPath(`/shop?${params.toString()}`));
+}
+
+function shopRouteForCategory(category) {
+  const params = new URLSearchParams(location.search);
+  params.set("category", category);
+  if (state.shopQuery.trim()) params.set("q", state.shopQuery.trim());
+  else params.delete("q");
+  if (state.shopSort !== "featured") params.set("sort", state.shopSort);
+  else params.delete("sort");
+  if (state.shopStock) params.set("stock", "1");
+  else params.delete("stock");
+  return `/shop?${params.toString()}`;
 }
 
 function productPage(slug) {
@@ -633,7 +709,7 @@ function productPage(slug) {
         </aside>
       </div>
       <div class="pdp-content"><aside class="toc"><a href="#overview">Overview</a><a href="#specs">Specifications</a><a href="#protocol">Reconstitution</a><a href="#faq">FAQ</a></aside><article class="prose">
-        <section id="overview"><h2>Research overview</h2><p>${product.name} is presented for lawful in-vitro laboratory research with clear variant selection, market-aware pricing, and batch-document visibility.</p><ul>${product.applications.map((a) => `<li>${a}</li>`).join("")}</ul></section>
+        <section id="overview"><h2>Research overview</h2><p>${product.name} is listed for lawful in-vitro laboratory research only. Select the variant and quantity that fit your protocol, and review available batch documentation before ordering.</p><ul>${product.applications.map((a) => `<li>${a}</li>`).join("")}</ul></section>
         <section id="specs"><h2>Product specifications</h2>${specTable(product.specs, `${product.name} specifications`)}</section>
         <section id="protocol"><h2>Reconstitution planning</h2><p>Use the calculator to model vial amount, diluent volume, and desired research amount. Follow your validated laboratory SOP.</p><a data-link class="btn secondary" href="/peptide-calculator">Open calculator</a></section>
         <section id="faq"><h2>FAQ</h2>${accordion(product.faqs)}</section>
@@ -745,8 +821,8 @@ function affiliatePage() {
 }
 
 function aboutPage() {
-  return `<section class="section container">${pageHero("About", "Quality process and brand story", "MAXXFIT LABS is a report-forward research storefront for lawful laboratory workflows.")}
-    <div class="process-grid">${feature("flask", "Source", "Qualified sourcing for research-use materials.")}${feature("test", "Test", "Available COA and contaminant reports are linked by product variant.")}${feature("box", "Pack", "Clear product formats, variants, and companion supplies.")}${feature("truck", "Ship", market().shipping)}</div>
+  return `<section class="section container">${pageHero("About", "Our quality process", "MAXXFIT LABS supplies research-use materials for laboratory workflows, with documentation and market-specific ordering details kept visible.")}
+    <div class="process-grid">${feature("flask", "Source", "Materials are sourced for laboratory research use and handled to consistent standards.")}${feature("test", "Test", "Available COA, heavy metals, and endotoxin reports are linked by product variant when uploaded.")}${feature("box", "Pack", "Clear product formats, variants, and companion supplies for reconstitution and handling.")}${feature("truck", "Ship", market().shipping)}</div>
   </section>`;
 }
 
@@ -929,13 +1005,27 @@ function updateSearchResults(query) {
 
 function bindRoute() {
   document.querySelectorAll("[data-category]").forEach((button) => {
-    button.addEventListener("click", () => navigate(`/shop?category=${encodeURIComponent(button.dataset.category)}`));
+    button.addEventListener("click", () => navigate(shopRouteForCategory(button.dataset.category)));
   });
   const shopQuery = document.querySelector("[data-shop-query]");
+  const shopClear = document.querySelector("[data-shop-clear]");
+  const syncShopClear = () => {
+    if (shopClear) shopClear.hidden = !shopQuery?.value;
+  };
   shopQuery?.addEventListener("input", () => {
     state.shopQuery = shopQuery.value;
+    syncShopClear();
     updateShopResults();
   });
+  shopClear?.addEventListener("click", () => {
+    if (!shopQuery) return;
+    state.shopQuery = "";
+    shopQuery.value = "";
+    syncShopClear();
+    updateShopResults();
+    shopQuery.focus();
+  });
+  syncShopClear();
   const shopSort = document.querySelector("[data-shop-sort]");
   if (shopSort) {
     shopSort.value = state.shopSort;
@@ -1025,7 +1115,7 @@ function bindRoute() {
   document.querySelector("[data-verify]")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const code = new FormData(event.currentTarget).get("code");
-    document.querySelector("[data-verify-result]").innerHTML = `<section class="status-panel">${icon("check")}<h2>Verification flow reached</h2><p>${esc(code)} is ready to be checked against a real order or batch database.</p></section>`;
+    document.querySelector("[data-verify-result]").innerHTML = `<section class="status-panel">${icon("check")}<h2>Reference received</h2><p>Contact support with <strong>${esc(code)}</strong> to confirm an order or batch record against available documentation.</p></section>`;
   });
   document.querySelectorAll("[data-price-sku]").forEach((input) => {
     input.addEventListener("change", () => {
@@ -1334,8 +1424,29 @@ function productCard(product) {
   const max = Math.max(...prices);
   const isBundle = product.category === "Bundles";
   const badge = isBundle ? "Bundle & Save" : product.badge;
-  const action = isBundle ? "View Bundle" : "View Details";
-  return `<article class="product-card"><a data-link href="/product/${product.slug}" class="product-image-link" aria-label="${esc(product.name)} details">${badge ? `<span class="floating-badge">${badge}</span>` : ""}${productVisual(product)}</a><div class="product-card-body"><span class="category-label">${product.group}</span><h3><a data-link href="/product/${product.slug}">${product.name}</a></h3><div class="card-meta"><strong>${min === max ? marketPrice(min) : `${marketPrice(min)} - ${marketPrice(max)}`}</strong>${stockBadge(product.stock)}</div><a data-link class="btn small primary" href="/product/${product.slug}">${action} ${icon("arrow")}</a></div></article>`;
+  const action = isBundle ? "View Bundle" : "Select Options";
+  const variantCount = product.variants.length;
+  const stockOverlay = { "low-stock": ["Low Stock", "low"], "out-of-stock": ["Out of Stock", "out"], "back-soon": ["Back Soon", "back"] }[product.stock];
+  const showStockOverlay = stockOverlay && !isBundle;
+  return `<article class="product-card ${product.stock === "out-of-stock" ? "is-oos" : ""}">
+    <a data-link href="/product/${product.slug}" class="product-image-link" aria-label="${esc(product.name)} details">
+      ${badge && !showStockOverlay ? `<span class="floating-badge">${badge}</span>` : ""}
+      ${showStockOverlay ? `<span class="floating-badge stock-${stockOverlay[1]}">${stockOverlay[0]}</span>` : ""}
+      ${productVisual(product)}
+      <span class="product-quick-view">${icon("search")} Quick View</span>
+    </a>
+    <div class="product-card-body">
+      <span class="category-label">${product.group}</span>
+      <h3><a data-link href="/product/${product.slug}">${product.name}</a></h3>
+      <div class="product-price-row">
+        <strong class="product-price">${min === max ? marketPrice(min) : `${marketPrice(min)} <span class="price-sep">-</span> ${marketPrice(max)}`}</strong>
+        ${variantCount > 1 ? `<span class="variant-count">${variantCount} variants</span>` : ""}
+      </div>
+      <a data-link class="product-select-btn" href="/product/${product.slug}">
+        ${action} ${icon("arrow")}
+      </a>
+    </div>
+  </article>`;
 }
 
 function productGrid(items) {
@@ -1436,7 +1547,7 @@ function summaryRow(label, value, strong = false) {
 }
 
 function ctaBand() {
-  return `<section class="cta-band"><div class="container"><h2>Explore MAXXFIT LABS research products.</h2><p>Browse variants, review available lab reports, use the calculator, and place a market-aware research order.</p><div class="button-row"><a data-link class="btn primary" href="/shop">Browse catalog</a><a data-link class="btn secondary light" href="/contact">Contact support</a></div></div></section>`;
+  return `<section class="cta-band"><div class="container"><h2>Ready to source your next research product?</h2><p>Browse the catalog, review available batch documentation, and place a market-aware research order.</p><div class="button-row"><a data-link class="btn primary" href="/shop">Browse catalog</a><a data-link class="btn secondary light" href="/contact">Contact support</a></div></div></section>`;
 }
 
 function readJson(key, fallback) {
@@ -1487,7 +1598,9 @@ function icon(name) {
     chevron: '<path d="M6 9l6 6 6-6"></path>',
     external: '<path d="M14 3h7v7"></path><path d="M10 14L21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path>',
     minus: '<path d="M5 12h14"></path>',
-    plus: '<path d="M12 5v14M5 12h14"></path>'
+    plus: '<path d="M12 5v14M5 12h14"></path>',
+    sort: '<path d="M3 6h13"></path><path d="M3 12h9"></path><path d="M3 18h5"></path><path d="M17 6v14"></path><path d="M13 16l4 4 4-4"></path>',
+    filter: '<path d="M3 5h18l-7 8v6l-4 2v-8z"></path>'
   };
   const size = name.endsWith("large") ? 80 : 20;
   return `<svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.check}</svg>`;
